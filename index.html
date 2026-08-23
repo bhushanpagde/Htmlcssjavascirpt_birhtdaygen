@@ -32,30 +32,25 @@
         </nav>
     </aside>
     <main class="dashboard-page">
-        <div class="dashboard-layout">
-            <div class="dashboard-primary">
-                <header class="dashboard-header"><div><span class="eyebrow">EMPLOYEE CELEBRATION HUB</span><h1>Dashboard</h1><p>Live overview of employees, birthdays, and work anniversaries.</p></div></header>
-                <section class="kpi-grid" aria-label="Employee celebration summary">
-                    <article class="kpi-card kpi-employees"><div class="kpi-icon"><img src="assets/icons/user-plus.svg" alt=""></div><div class="kpi-content"><span>Added Employees</span><strong id="addedEmployees">—</strong><small>Total employee records</small></div></article>
-                    <article class="kpi-card kpi-today"><div class="kpi-icon"><img src="assets/icons/award.svg" alt=""></div><div class="kpi-content"><span>Today’s Birthday</span><strong id="todayBirthdays">—</strong><small>Celebrating today</small></div></article>
-                    <article class="kpi-card kpi-birthday"><div class="kpi-icon"><img src="assets/icons/image.svg" alt=""></div><div class="kpi-content"><span>Birthdays This Month</span><strong id="monthBirthdays">—</strong><small id="birthdayMonthLabel">Current month</small></div></article>
-                </section>
-                <section class="dashboard-card-carousel" aria-labelledby="createdCardsTitle">
-                    <div class="carousel-heading"><div><span class="carousel-kicker">LATEST CREATIONS</span><h2 id="createdCardsTitle">Created Birthday Cards</h2><p>Scroll through recently generated employee cards.</p></div><div class="carousel-controls"><button id="cardsPrevious" type="button" aria-label="Previous birthday card">←</button><button id="cardsNext" type="button" aria-label="Next birthday card">→</button></div></div>
-                    <div class="carousel-empty" id="createdCardsEmpty">Generated birthday cards will appear here.</div>
-                    <div class="carousel-viewport" id="createdCardsViewport" hidden><div class="carousel-track" id="createdCardsTrack"></div></div>
-                    <div class="carousel-dots" id="createdCardsDots" aria-hidden="true"></div>
-                </section>
-            </div>
-            <aside class="dashboard-aside">
-                <div class="dashboard-date" id="dashboardDate"></div>
-                <article class="kpi-card kpi-anniversary"><div class="kpi-icon"><img src="assets/icons/clock.svg" alt=""></div><div class="kpi-content"><span>Anniversaries This Month</span><strong id="monthAnniversaries">—</strong><small id="anniversaryMonthLabel">Current month</small></div></article>
-                <section class="missing-photo-panel" aria-labelledby="missingPhotoTitle">
-                    <div class="missing-photo-heading"><div class="missing-photo-title"><div class="missing-photo-heading-icon"><img src="assets/icons/user.svg" alt=""></div><div><h2 id="missingPhotoTitle">Missing Photos</h2><p>Employees who still need a profile photo</p></div></div><span class="missing-photo-count" id="missingPhotoCount">0</span></div>
-                    <div class="missing-photo-empty" id="missingPhotoEmpty">All employees have uploaded photos.</div>
-                    <div class="missing-photo-list" id="missingPhotoList"></div>
-                </section>
-            </aside>
+        <header class="dashboard-header"><div><span class="eyebrow">EMPLOYEE CELEBRATION HUB</span><h1>Dashboard</h1><p>Live overview of employees, birthdays, and work anniversaries.</p></div><div class="dashboard-date" id="dashboardDate"></div></header>
+        <section class="kpi-grid" aria-label="Employee celebration summary">
+            <article class="kpi-card kpi-employees"><div class="kpi-icon"><img src="assets/icons/user-plus.svg" alt=""></div><div class="kpi-content"><span>Added Employees</span><strong id="addedEmployees">—</strong><small>Total employee records</small></div></article>
+            <article class="kpi-card kpi-today"><div class="kpi-icon"><img src="assets/icons/award.svg" alt=""></div><div class="kpi-content"><span>Today’s Birthday</span><strong id="todayBirthdays">—</strong><small>Celebrating today</small></div></article>
+            <article class="kpi-card kpi-birthday"><div class="kpi-icon"><img src="assets/icons/image.svg" alt=""></div><div class="kpi-content"><span>Birthdays This Month</span><strong id="monthBirthdays">—</strong><small id="birthdayMonthLabel">Current month</small></div></article>
+            <article class="kpi-card kpi-anniversary"><div class="kpi-icon"><img src="assets/icons/clock.svg" alt=""></div><div class="kpi-content"><span>Anniversaries This Month</span><strong id="monthAnniversaries">—</strong><small id="anniversaryMonthLabel">Current month</small></div></article>
+        </section>
+        <div class="dashboard-content-grid">
+            <section class="dashboard-card-carousel" aria-labelledby="createdCardsTitle">
+                <div class="carousel-heading"><div><span class="carousel-kicker">LATEST CREATIONS</span><h2 id="createdCardsTitle">Created Birthday Cards</h2><p>Scroll through recently generated employee cards.</p></div><div class="carousel-controls"><button id="cardsPrevious" type="button" aria-label="Previous birthday card">←</button><button id="cardsNext" type="button" aria-label="Next birthday card">→</button></div></div>
+                <div class="carousel-empty" id="createdCardsEmpty">Generated birthday cards will appear here.</div>
+                <div class="carousel-viewport" id="createdCardsViewport" hidden><div class="carousel-track" id="createdCardsTrack"></div></div>
+                <div class="carousel-dots" id="createdCardsDots" aria-hidden="true"></div>
+            </section>
+            <section class="missing-photo-panel" aria-labelledby="missingPhotoTitle">
+                <div class="missing-photo-heading"><div class="missing-photo-title"><div class="missing-photo-heading-icon"><img src="assets/icons/user.svg" alt=""></div><div><h2 id="missingPhotoTitle">Missing Photos</h2><p>Employees who still need a profile photo</p></div></div><span class="missing-photo-count" id="missingPhotoCount">0</span></div>
+                <div class="missing-photo-empty" id="missingPhotoEmpty">All employees have uploaded photos.</div>
+                <div class="missing-photo-list" id="missingPhotoList"></div>
+            </section>
         </div>
         <div class="dashboard-notice" id="dashboardNotice" hidden role="status"></div>
     </main>
