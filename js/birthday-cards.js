@@ -6,7 +6,7 @@
     const OUTPUT_WIDTH = 1020;
     const OUTPUT_HEIGHT = 1900;
     const PHOTO_SIZE = 800;
-    const PHOTO_TOP_OFFSET = 85;
+    const PHOTO_TOP_OFFSET = 110;
     const TEMPLATE_COUNT = 27;
     const TEMPLATE_Y = [850, 735, 820, 800, 850, 850, 850, 850, 850, 850, 850, 820, 850, 800, 800, 850, 850, 850, 850, 850, 850, 850, 850, 820, 850, 820, 800];
 
@@ -44,7 +44,7 @@
         elements.cardSearch.addEventListener('input', renderCards);
         elements.downloadAllButton.addEventListener('click', downloadAllCards);
         elements.dialogClose.addEventListener('click', () => elements.cardDialog.close());
-        elements.dialogDownload.addEventListener('click', () => dialogCard && downloadBlob(dialogCard.blob, dialogCard.fileName));
+        elements.dialogDownload.addEventListener('click', () => dialogCard && downloadBlob(dialogCard.blob, cardFileName(dialogCard.fullName)));
         elements.cardDialog.addEventListener('close', () => { elements.dialogImage.src = ''; dialogCard = null; });
     }
 
@@ -144,7 +144,7 @@
         const y = Math.max(0, Math.min(centerY - PHOTO_SIZE / 2, OUTPUT_HEIGHT - PHOTO_SIZE));
         context.save(); roundedRect(context, x, y, PHOTO_SIZE, PHOTO_SIZE, 80); context.clip(); drawImageCover(context, photo, x, y, PHOTO_SIZE, PHOTO_SIZE); context.restore();
         const blob = await canvasToBlob(canvas, 'image/jpeg', .95);
-        const fileName = `${safeFilename(employee.id)}_${safeFilename(employee.fullName)}.jpg`;
+        const fileName = cardFileName(employee.fullName);
         const card = { id: employee.id, employeeId: employee.id, fullName: employee.fullName, templateNumber, fileName, blob, createdAt: new Date().toISOString() };
         await put('cards', card);
         employee.birthdayCard = true; employee.updatedAt = new Date().toISOString(); await put('employees', employee);
@@ -164,7 +164,7 @@
             const name = document.createElement('strong'); name.textContent = card.fullName;
             const detail = document.createElement('small'); detail.textContent = `${card.employeeId} · Template ${card.templateNumber}`;
             const buttons = document.createElement('div'); buttons.className = 'card-buttons';
-            const download = document.createElement('button'); download.type = 'button'; download.textContent = 'Download'; download.addEventListener('click', () => downloadBlob(card.blob, card.fileName));
+            const download = document.createElement('button'); download.type = 'button'; download.textContent = 'Download'; download.addEventListener('click', () => downloadBlob(card.blob, cardFileName(card.fullName)));
             const regenerate = document.createElement('button'); regenerate.type = 'button'; regenerate.textContent = 'Regenerate'; regenerate.addEventListener('click', () => regenerateCard(card.employeeId));
             buttons.append(download, regenerate); meta.append(name, detail, buttons); article.append(image, meta); elements.cardGrid.appendChild(article);
         });
@@ -187,7 +187,7 @@
     async function downloadAllCards() {
         try {
             setProgress(10, 'Creating ZIP archive…'); const zip = new JSZip();
-            cards.forEach(card => zip.file(card.fileName, card.blob));
+            cards.forEach(card => zip.file(cardFileName(card.fullName), card.blob));
             const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' }, metadata => setProgress(Math.round(metadata.percent), 'Creating ZIP archive…'));
             downloadBlob(blob, `BirthdayCards_${timestamp()}.zip`); setProgress(100, 'ZIP ready'); setTimeout(() => { elements.progressWrap.hidden = true; }, 600);
         } catch (error) { elements.progressWrap.hidden = true; showNotice(`ZIP creation failed: ${error.message}`, 'error'); }
@@ -247,7 +247,7 @@
     function appendStatusCell(row, value) { const cell = document.createElement('td'); const status = document.createElement('span'); status.className = `status${value ? ' yes' : ''}`; status.textContent = value ? 'Yes' : 'No'; cell.appendChild(status); row.appendChild(cell); }
     function byId(id) { return document.getElementById(id); }
     function normalize(value) { return String(value ?? '').trim().toLowerCase().replace(/\s+/g, ' '); }
-    function safeFilename(value) { return String(value || 'Employee').replace(/[^A-Za-z0-9._ -]+/g, '').trim().replace(/\s+/g, '_') || 'Employee'; }
+    function cardFileName(fullName) { const readable=String(fullName||'Employee').replace(/[&_]+/g,' ').replace(/[<>:"/\\|?*\x00-\x1F]+/g,'').trim().replace(/\s+/g,' ')||'Employee';return `${readable}.jpg`; }
     function timestamp() { const date = new Date(); const pad = value => String(value).padStart(2, '0'); return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}_${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`; }
     function loadImage(source) { return new Promise((resolve, reject) => { const image = new Image(); let url = source; if (source instanceof Blob) url = URL.createObjectURL(source); image.onload = () => { if (source instanceof Blob) URL.revokeObjectURL(url); resolve(image); }; image.onerror = () => { if (source instanceof Blob) URL.revokeObjectURL(url); reject(new Error('The image could not be loaded.')); }; image.src = url; }); }
     function roundedRect(context, x, y, width, height, radius) { context.beginPath(); context.roundRect(x, y, width, height, radius); }

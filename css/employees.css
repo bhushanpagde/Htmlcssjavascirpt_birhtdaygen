@@ -1,7 +1,17 @@
 .employee-filters { display: flex; gap: 10px; flex-wrap: wrap; }
-.employee-table { border: 1px solid #e6e8eb; border-radius: 10px; border-collapse: separate; border-spacing: 0; overflow: hidden; box-shadow: 0 4px 12px #0000000a; }
+.employees-page { width: auto; max-width: none; }
+.employee-section { width: 100%; }
+.employee-table { min-width: 1120px; border: 1px solid #e6e8eb; border-radius: 10px; border-collapse: separate; border-spacing: 0; overflow: hidden; box-shadow: 0 4px 12px #0000000a; }
 .employee-table th { background: #f4f5f7; }
 .employee-table tr:last-child td { border-bottom: 0; }
+.employee-table th:nth-child(2), .employee-table td:nth-child(2) { min-width: 250px; }
+.employee-profile { display: flex; align-items: center; gap: 11px; }
+.employee-avatar { display: grid; width: 42px; height: 42px; flex: 0 0 42px; overflow: hidden; place-items: center; border: 1px solid #e0e4e8; border-radius: 50%; color: #3f5367; background: #eaf0f5; font-size: 12px; font-weight: 700; }
+.employee-avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.employee-profile-text { min-width: 0; }
+.employee-profile-text strong, .employee-profile-text small { display: block; }
+.employee-profile-text strong { margin-bottom: 3px; }
+.employee-profile-text small { max-width: 210px; overflow: hidden; color: #777; text-overflow: ellipsis; white-space: nowrap; }
 .table-button { min-width: 70px; padding: 7px 10px; border: 1px solid #d5d5d5; border-radius: 7px; background: #fff; cursor: pointer; }
 .table-button:hover { background: #f4f4f4; }
 .table-button.delete { color: #b42318; border-color: #fecaca; }
