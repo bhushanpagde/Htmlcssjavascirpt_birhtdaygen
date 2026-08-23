@@ -1,0 +1,9 @@
+.info-note { margin-top: 24px; color: #0759a5; background: #e7f1ff; }
+.farewell-dialog { width: min(560px, calc(100% - 30px)); padding: 24px; border: 0; border-radius: 14px; box-shadow: 0 18px 60px #0005; }
+.farewell-dialog::backdrop { background: #0008; }
+.farewell-dialog .dialog-heading { display: flex; align-items: center; justify-content: space-between; }
+.farewell-dialog .dialog-heading h2 { margin: 0; }
+.farewell-dialog label { display: grid; gap: 7px; margin-top: 16px; color: #555; font-size: 13px; font-weight: 700; }
+.farewell-dialog select, .farewell-dialog textarea { width: 100%; padding: 11px 12px; border: 1px solid #d5d5d5; border-radius: 8px; font: inherit; resize: vertical; }
+.form-note { margin: 15px 0 0; padding: 11px; border-radius: 8px; color: #735c0f; background: #fff9db; font-size: 13px; }
+.farewell-dialog .dialog-actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 20px; }

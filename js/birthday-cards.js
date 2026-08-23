@@ -1,0 +1,257 @@
+(() => {
+    'use strict';
+
+    const DB_NAME = 'birthday-studio';
+    const DB_VERSION = 2;
+    const OUTPUT_WIDTH = 1020;
+    const OUTPUT_HEIGHT = 1900;
+    const PHOTO_SIZE = 800;
+    const PHOTO_TOP_OFFSET = 85;
+    const TEMPLATE_COUNT = 27;
+    const TEMPLATE_Y = [850, 735, 820, 800, 850, 850, 850, 850, 850, 850, 850, 820, 850, 800, 800, 850, 850, 850, 850, 850, 850, 850, 850, 820, 850, 820, 800];
+
+    const elements = {};
+    let database;
+    let pendingWorkbook = null;
+    let pendingEmployees = [];
+    let employees = [];
+    let cards = [];
+    let galleryUrls = [];
+    let dialogCard = null;
+
+    document.addEventListener('DOMContentLoaded', initialize);
+
+    async function initialize() {
+        Object.assign(elements, {
+            progressWrap: byId('progressWrap'), progressText: byId('progressText'), progressValue: byId('progressValue'), progressBar: byId('progressBar'),
+            notice: byId('notice'),
+            cardSearch: byId('cardSearch'), cardCount: byId('cardCount'), cardEmpty: byId('cardEmpty'), cardGrid: byId('cardGrid'), downloadAllButton: byId('downloadAllButton'),
+            cardDialog: byId('cardDialog'), dialogClose: byId('dialogClose'),
+            dialogImage: byId('dialogImage'), dialogName: byId('dialogName'), dialogDownload: byId('dialogDownload')
+        });
+
+        if (!window.JSZip) {
+            showNotice('Required browser libraries could not be loaded.', 'error');
+            return;
+        }
+
+        database = await openDatabase();
+        bindEvents();
+        await refreshData();
+    }
+
+    function bindEvents() {
+        elements.cardSearch.addEventListener('input', renderCards);
+        elements.downloadAllButton.addEventListener('click', downloadAllCards);
+        elements.dialogClose.addEventListener('click', () => elements.cardDialog.close());
+        elements.dialogDownload.addEventListener('click', () => dialogCard && downloadBlob(dialogCard.blob, dialogCard.fileName));
+        elements.cardDialog.addEventListener('close', () => { elements.dialogImage.src = ''; dialogCard = null; });
+    }
+
+
+    async function handleExcel(file) {
+        if (!file) return;
+        if (!/\.(xlsx|xlsm)$/i.test(file.name)) {
+            showNotice('Please choose an XLSX or XLSM workbook.', 'error'); return;
+        }
+        try {
+            setProgress(15, 'Reading workbook…');
+            const buffer = await file.arrayBuffer();
+            const workbook = XLSX.read(buffer, { type: 'array', cellDates: true });
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, dateNF: 'yyyy-mm-dd', defval: '' });
+            validateHeaders(rows[0] || []);
+            const existingIds = new Set(employees.map(item => normalize(item.id)));
+            const seenIds = new Set();
+            pendingEmployees = rows.slice(1).map((row, index) => createEmployee(row, index + 2, existingIds, seenIds)).filter(Boolean);
+            if (!pendingEmployees.length) throw new Error('No employee rows were found below the header.');
+            pendingWorkbook = { file, blob: new Blob([buffer], { type: file.type || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }) };
+            renderExcelPreview();
+            setProgress(100, 'Workbook ready');
+            setTimeout(() => { elements.progressWrap.hidden = true; }, 500);
+        } catch (error) {
+            elements.progressWrap.hidden = true;
+            pendingWorkbook = null; pendingEmployees = [];
+            showNotice(error.message, 'error');
+        }
+    }
+
+    function validateHeaders(headers) {
+        const expected = [
+            ['employeeid', 'employee id', 'empid', 'emp id'], ['fullname', 'full name', 'name'], ['location'], ['email', 'email address'], ['dob', 'date of birth']
+        ];
+        const invalid = expected.some((accepted, index) => !accepted.includes(normalize(headers[index])));
+        if (invalid) throw new Error('Invalid columns. Row 1 must be: A Employee ID, B Full Name, C Location, D Email, E DOB.');
+    }
+
+    function createEmployee(row, rowNumber, existingIds, seenIds) {
+        const id = String(row[0] || '').trim();
+        const fullName = String(row[1] || '').trim();
+        if (!id && !fullName) return null;
+        let status = 'New';
+        if (!id || !fullName) status = 'Invalid: ID and name required';
+        else if (existingIds.has(normalize(id))) status = 'Duplicate: already saved';
+        else if (seenIds.has(normalize(id))) status = 'Duplicate ID in workbook';
+        if (id) seenIds.add(normalize(id));
+        return { id, fullName, location: String(row[2] || '').trim(), email: String(row[3] || '').trim(), dob: String(row[4] || '').trim(), photo: false, birthdayCard: false, createdAt: new Date().toISOString(), rowNumber, status };
+    }
+
+    function renderExcelPreview() {
+        elements.previewBody.replaceChildren();
+        pendingEmployees.slice(0, 100).forEach(employee => {
+            const row = document.createElement('tr');
+            [employee.id, employee.fullName, employee.location, employee.email, employee.dob, employee.status].forEach(value => {
+                const cell = document.createElement('td'); cell.textContent = value; row.appendChild(cell);
+            });
+            elements.previewBody.appendChild(row);
+        });
+        const newCount = pendingEmployees.filter(item => item.status === 'New').length;
+        const skipped = pendingEmployees.length - newCount;
+        elements.previewSummary.textContent = `${pendingWorkbook.file.name}: ${newCount} new employee(s), ${skipped} invalid or duplicate row(s).${pendingEmployees.length > 100 ? ' Showing the first 100 rows.' : ''}`;
+        elements.processButton.disabled = newCount === 0;
+        elements.excelPreview.hidden = false;
+    }
+
+    async function saveWorkbookAndEmployees() {
+        if (!pendingWorkbook) return;
+        const valid = pendingEmployees.filter(item => item.status === 'New').map(({ status, rowNumber, ...employee }) => employee);
+        try {
+            setProgress(20, 'Saving timestamped Excel sheet…');
+            const stamp = timestamp();
+            const extension = pendingWorkbook.file.name.split('.').pop().toLowerCase();
+            const savedName = `Birthdays_${stamp}.${extension}`;
+            await put('files', { id: savedName, name: savedName, type: 'workbook', blob: pendingWorkbook.blob, savedAt: new Date().toISOString() });
+            setProgress(55, 'Saving employee records…');
+            for (const employee of valid) await put('employees', employee);
+            setProgress(100, 'Completed');
+            showNotice(`Saved ${savedName} and added ${valid.length} employee(s). ${pendingEmployees.length - valid.length} row(s) skipped.`, 'success');
+            pendingWorkbook = null; pendingEmployees = []; elements.excelInput.value = ''; elements.excelPreview.hidden = true; elements.uploadPanel.hidden = true;
+            await refreshData();
+            setTimeout(() => { elements.progressWrap.hidden = true; }, 700);
+        } catch (error) {
+            elements.progressWrap.hidden = true; showNotice(`Could not save the workbook: ${error.message}`, 'error');
+        }
+    }
+
+    async function generateAndSaveCard(employee, photoBlob) {
+        const templateNumber = Math.floor(Math.random() * TEMPLATE_COUNT) + 1;
+        const template = await loadImage(readTemplateData(templateNumber));
+        const photo = await loadImage(photoBlob);
+        const canvas = document.createElement('canvas'); canvas.width = OUTPUT_WIDTH; canvas.height = OUTPUT_HEIGHT;
+        const context = canvas.getContext('2d'); context.drawImage(template, 0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT);
+        const centerX = 510; const centerY = TEMPLATE_Y[templateNumber - 1] + PHOTO_TOP_OFFSET;
+        const x = Math.max(0, Math.min(centerX - PHOTO_SIZE / 2, OUTPUT_WIDTH - PHOTO_SIZE));
+        const y = Math.max(0, Math.min(centerY - PHOTO_SIZE / 2, OUTPUT_HEIGHT - PHOTO_SIZE));
+        context.save(); roundedRect(context, x, y, PHOTO_SIZE, PHOTO_SIZE, 80); context.clip(); drawImageCover(context, photo, x, y, PHOTO_SIZE, PHOTO_SIZE); context.restore();
+        const blob = await canvasToBlob(canvas, 'image/jpeg', .95);
+        const fileName = `${safeFilename(employee.id)}_${safeFilename(employee.fullName)}.jpg`;
+        const card = { id: employee.id, employeeId: employee.id, fullName: employee.fullName, templateNumber, fileName, blob, createdAt: new Date().toISOString() };
+        await put('cards', card);
+        employee.birthdayCard = true; employee.updatedAt = new Date().toISOString(); await put('employees', employee);
+        return card;
+    }
+
+    function renderCards() {
+        galleryUrls.forEach(URL.revokeObjectURL); galleryUrls = [];
+        const query = normalize(elements.cardSearch.value);
+        const visible = cards.filter(card => normalize(`${card.employeeId} ${card.fullName}`).includes(query));
+        elements.cardGrid.replaceChildren();
+        visible.forEach(card => {
+            const article = document.createElement('article'); article.className = 'card-item';
+            const image = document.createElement('img'); const url = URL.createObjectURL(card.blob); galleryUrls.push(url); image.src = url; image.alt = `Birthday card for ${card.fullName}`;
+            image.addEventListener('click', () => previewCard(card));
+            const meta = document.createElement('div'); meta.className = 'card-meta';
+            const name = document.createElement('strong'); name.textContent = card.fullName;
+            const detail = document.createElement('small'); detail.textContent = `${card.employeeId} · Template ${card.templateNumber}`;
+            const buttons = document.createElement('div'); buttons.className = 'card-buttons';
+            const download = document.createElement('button'); download.type = 'button'; download.textContent = 'Download'; download.addEventListener('click', () => downloadBlob(card.blob, card.fileName));
+            const regenerate = document.createElement('button'); regenerate.type = 'button'; regenerate.textContent = 'Regenerate'; regenerate.addEventListener('click', () => regenerateCard(card.employeeId));
+            buttons.append(download, regenerate); meta.append(name, detail, buttons); article.append(image, meta); elements.cardGrid.appendChild(article);
+        });
+        elements.cardCount.textContent = `${cards.length} card${cards.length === 1 ? '' : 's'}`;
+        elements.cardEmpty.hidden = cards.length > 0;
+        elements.downloadAllButton.disabled = cards.length === 0;
+    }
+
+    async function regenerateCard(employeeId) {
+        const employee = employees.find(item => item.id === employeeId); const photo = await get('photos', employeeId);
+        if (!employee || !photo) { showNotice('The employee photo is unavailable. Upload it again.', 'error'); return; }
+        try { setProgress(25, 'Regenerating card…'); await generateAndSaveCard(employee, photo.blob); setProgress(100, 'Card regenerated'); showNotice(`Created a new card for ${employee.fullName}.`, 'success'); await refreshData(); setTimeout(() => { elements.progressWrap.hidden = true; }, 600); }
+        catch (error) { elements.progressWrap.hidden = true; showNotice(error.message, 'error'); }
+    }
+
+    function previewCard(card) {
+        dialogCard = card; elements.dialogImage.src = URL.createObjectURL(card.blob); elements.dialogName.textContent = card.fullName; elements.cardDialog.showModal();
+    }
+
+    async function downloadAllCards() {
+        try {
+            setProgress(10, 'Creating ZIP archive…'); const zip = new JSZip();
+            cards.forEach(card => zip.file(card.fileName, card.blob));
+            const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' }, metadata => setProgress(Math.round(metadata.percent), 'Creating ZIP archive…'));
+            downloadBlob(blob, `BirthdayCards_${timestamp()}.zip`); setProgress(100, 'ZIP ready'); setTimeout(() => { elements.progressWrap.hidden = true; }, 600);
+        } catch (error) { elements.progressWrap.hidden = true; showNotice(`ZIP creation failed: ${error.message}`, 'error'); }
+    }
+
+    async function exportBackup() {
+        const payload = { version: 1, exportedAt: new Date().toISOString(), employees: employees.map(({ photo, birthdayCard, ...rest }) => ({ ...rest, photo, birthdayCard })), cards: cards.map(({ blob, ...card }) => card) };
+        downloadBlob(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }), `BirthdayStudio_Backup_${timestamp()}.json`);
+    }
+
+    async function importBackup(file) {
+        if (!file) return;
+        try {
+            const payload = JSON.parse(await file.text()); if (!Array.isArray(payload.employees)) throw new Error('Backup does not contain an employees list.');
+            for (const employee of payload.employees) { if (employee.id && employee.fullName) await put('employees', employee); }
+            showNotice(`Imported ${payload.employees.length} employee record(s). Photos and generated images must be uploaded again.`, 'success'); await refreshData();
+        } catch (error) { showNotice(`Backup import failed: ${error.message}`, 'error'); }
+        elements.importInput.value = '';
+    }
+
+    async function refreshData() {
+        employees = (await getAll('employees')).sort((a, b) => a.fullName.localeCompare(b.fullName));
+        cards = (await getAll('cards')).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+        renderCards();
+    }
+
+    function readTemplateData(templateNumber) {
+        const source = window.BIRTHDAY_TEMPLATE_DATA?.[templateNumber];
+        if (!source) throw new Error(`Embedded template ${templateNumber} is unavailable.`);
+        return source;
+    }
+
+    function openDatabase() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(DB_NAME, DB_VERSION);
+            request.onupgradeneeded = () => {
+                const db = request.result;
+                ['employees', 'photos', 'cards', 'files'].forEach(store => { if (!db.objectStoreNames.contains(store)) db.createObjectStore(store, { keyPath: 'id' }); });
+                if (!db.objectStoreNames.contains('certificates')) db.createObjectStore('certificates', { keyPath: 'id' });
+                if (!db.objectStoreNames.contains('settings')) db.createObjectStore('settings', { keyPath: 'key' });
+            };
+            request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error);
+        });
+    }
+
+    function storeRequest(storeName, mode, operation) {
+        return new Promise((resolve, reject) => { const transaction = database.transaction(storeName, mode); const request = operation(transaction.objectStore(storeName)); request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); });
+    }
+    const put = (store, value) => storeRequest(store, 'readwrite', objectStore => objectStore.put(value));
+    const get = (store, key) => storeRequest(store, 'readonly', objectStore => objectStore.get(key));
+    const getAll = store => storeRequest(store, 'readonly', objectStore => objectStore.getAll());
+
+    function setProgress(value, label) { elements.progressWrap.hidden = false; elements.progressBar.value = value; elements.progressValue.textContent = `${value}%`; elements.progressText.textContent = label; }
+    function showNotice(message, type) { elements.notice.textContent = message; elements.notice.className = `notice ${type}`; elements.notice.hidden = false; elements.notice.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+    function appendCell(row, value) { const cell = document.createElement('td'); cell.textContent = value; row.appendChild(cell); }
+    function appendEmployeeCell(row, employee) { const cell = document.createElement('td'); const name = document.createElement('strong'); name.textContent = employee.fullName; const email = document.createElement('div'); email.textContent = employee.email || '—'; email.style.color = '#777'; cell.append(name, email); row.appendChild(cell); }
+    function appendStatusCell(row, value) { const cell = document.createElement('td'); const status = document.createElement('span'); status.className = `status${value ? ' yes' : ''}`; status.textContent = value ? 'Yes' : 'No'; cell.appendChild(status); row.appendChild(cell); }
+    function byId(id) { return document.getElementById(id); }
+    function normalize(value) { return String(value ?? '').trim().toLowerCase().replace(/\s+/g, ' '); }
+    function safeFilename(value) { return String(value || 'Employee').replace(/[^A-Za-z0-9._ -]+/g, '').trim().replace(/\s+/g, '_') || 'Employee'; }
+    function timestamp() { const date = new Date(); const pad = value => String(value).padStart(2, '0'); return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}_${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`; }
+    function loadImage(source) { return new Promise((resolve, reject) => { const image = new Image(); let url = source; if (source instanceof Blob) url = URL.createObjectURL(source); image.onload = () => { if (source instanceof Blob) URL.revokeObjectURL(url); resolve(image); }; image.onerror = () => { if (source instanceof Blob) URL.revokeObjectURL(url); reject(new Error('The image could not be loaded.')); }; image.src = url; }); }
+    function roundedRect(context, x, y, width, height, radius) { context.beginPath(); context.roundRect(x, y, width, height, radius); }
+    function drawImageCover(context, image, x, y, width, height) { const ratio = Math.max(width / image.naturalWidth, height / image.naturalHeight); const drawWidth = image.naturalWidth * ratio; const drawHeight = image.naturalHeight * ratio; context.drawImage(image, x + (width - drawWidth) / 2, y + (height - drawHeight) / 2, drawWidth, drawHeight); }
+    function canvasToBlob(canvas, type, quality) { return new Promise((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('The card could not be exported.')), type, quality)); }
+    function downloadBlob(blob, fileName) { const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = fileName; document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
+})();

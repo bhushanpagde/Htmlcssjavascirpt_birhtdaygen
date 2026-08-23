@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Birthday Cards - Birthday Studio</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="../css/sidebar.css">
+    <link rel="stylesheet" href="../css/birthday-cards.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <script src="../js/navigation.js" defer data-root="../" data-page="birthday-cards"></script>
+    <script src="../js/vendor/jszip.min.js" defer></script>
+    <script src="../js/vendor/birthday-template-data.js" defer></script>
+    <script src="../js/birthday-cards.js" defer></script>
+</head>
+<body>
+    <main class="cards-page card-gallery-page">
+        <header class="cards-header">
+            <div><h1>🎂 Birthday Cards</h1><p>Preview, regenerate, search, and download generated employee birthday cards.</p></div>
+        </header>
+        <div class="progress-wrap" id="progressWrap" hidden><div class="progress-label"><span id="progressText">Processing…</span><span id="progressValue">0%</span></div><progress id="progressBar" max="100" value="0"></progress></div>
+        <div class="notice" id="notice" hidden role="alert"></div>
+        <section class="content-section">
+            <div class="section-heading"><div><h2>Generated Birthday Cards</h2><p id="cardCount">0 cards</p></div><div class="gallery-actions"><input class="search-input" id="cardSearch" type="search" placeholder="Search cards…" aria-label="Search generated cards"><button class="button button-secondary" id="downloadAllButton" type="button" disabled>Download All ZIP</button></div></div>
+            <div class="empty-state info" id="cardEmpty">No birthday cards have been generated yet.</div>
+            <div class="card-grid" id="cardGrid"></div>
+        </section>
+    </main>
+    <dialog class="card-dialog" id="cardDialog"><button class="dialog-close" id="dialogClose" type="button" aria-label="Close preview">×</button><img id="dialogImage" alt="Generated birthday card preview"><div class="dialog-footer"><strong id="dialogName"></strong><button class="button button-primary" id="dialogDownload" type="button">Download</button></div></dialog>
+</body>
+</html>

@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Farewell Cards - Birthday Studio</title>
+    <link rel="stylesheet" href="../css/main.css"><link rel="stylesheet" href="../css/sidebar.css"><link rel="stylesheet" href="../css/birthday-cards.css"><link rel="stylesheet" href="../css/farewell-card.css"><link rel="stylesheet" href="../css/responsive.css">
+    <script src="../js/navigation.js" defer data-root="../" data-page="farewell-card"></script><script src="../js/farewell-card.js" defer></script>
+</head>
+<body>
+    <main class="cards-page farewell-page">
+        <header class="cards-header"><div><h1>👋 Farewell Cards</h1><p>Create a personalized farewell message for an employee.</p></div><button class="button button-primary" id="newFarewellButton" type="button">＋ New Farewell Card</button></header>
+        <div class="notice info-note" id="farewellNotice" role="status">The form and template folder are ready. Card-generation logic will be added after workflow confirmation.</div>
+        <section class="content-section"><div class="section-heading"><div><h2>Generated Farewell Cards</h2><p>Future farewell cards will appear here.</p></div></div><div class="empty-state info">No farewell cards have been generated yet.</div></section>
+    </main>
+    <dialog class="farewell-dialog" id="farewellDialog"><form id="farewellForm"><div class="dialog-heading"><h2>New Farewell Card</h2><button class="icon-button" id="farewellClose" type="button" aria-label="Close">×</button></div><label>Employee Name<select id="farewellEmployee" required><option value="">Select an employee</option></select></label><label>Wishing Message / Quote<textarea id="farewellMessage" rows="7" required placeholder="Enter the farewell wish, appreciation message, or quote"></textarea></label><p class="form-note">Template selection and card-generation actions will be enabled after you confirm the logic.</p><div class="dialog-actions"><button class="button button-secondary" id="farewellCancel" type="button">Cancel</button><button class="button button-primary" type="submit" disabled>Create Farewell Card</button></div></form></dialog>
+</body></html>
