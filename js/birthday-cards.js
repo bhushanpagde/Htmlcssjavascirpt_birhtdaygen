@@ -16,6 +16,7 @@
     let pendingEmployees = [];
     let employees = [];
     let cards = [];
+    const selectedCardIds = new Set();
     let galleryUrls = [];
     let dialogCard = null;
 
@@ -25,7 +26,7 @@
         Object.assign(elements, {
             progressWrap: byId('progressWrap'), progressText: byId('progressText'), progressValue: byId('progressValue'), progressBar: byId('progressBar'),
             notice: byId('notice'),
-            cardSearch: byId('cardSearch'), cardCount: byId('cardCount'), cardEmpty: byId('cardEmpty'), cardGrid: byId('cardGrid'), downloadAllButton: byId('downloadAllButton'),
+            cardSearch: byId('cardSearch'), cardCount: byId('cardCount'), cardEmpty: byId('cardEmpty'), cardGrid: byId('cardGrid'), prepareEmailButton: byId('prepareEmailButton'), downloadAllButton: byId('downloadAllButton'),
             cardDialog: byId('cardDialog'), dialogClose: byId('dialogClose'),
             dialogImage: byId('dialogImage'), dialogName: byId('dialogName'), dialogDownload: byId('dialogDownload')
         });
@@ -42,6 +43,7 @@
 
     function bindEvents() {
         elements.cardSearch.addEventListener('input', renderCards);
+        elements.prepareEmailButton.addEventListener('click', prepareBirthdayEmail);
         elements.downloadAllButton.addEventListener('click', downloadAllCards);
         elements.dialogClose.addEventListener('click', () => elements.cardDialog.close());
         elements.dialogDownload.addEventListener('click', () => dialogCard && downloadBlob(dialogCard.blob, cardFileName(dialogCard.fullName)));
@@ -161,17 +163,23 @@
             const image = document.createElement('img'); const url = URL.createObjectURL(card.blob); galleryUrls.push(url); image.src = url; image.alt = `Birthday card for ${card.fullName}`;
             image.addEventListener('click', () => previewCard(card));
             const meta = document.createElement('div'); meta.className = 'card-meta';
+            const selectLabel=document.createElement('label');selectLabel.className='card-select';const select=document.createElement('input');select.type='checkbox';select.checked=selectedCardIds.has(card.id);select.addEventListener('change',()=>{if(select.checked)selectedCardIds.add(card.id);else selectedCardIds.delete(card.id);updateEmailButton();});selectLabel.append(select,document.createTextNode('Include in email'));
             const name = document.createElement('strong'); name.textContent = card.fullName;
             const detail = document.createElement('small'); detail.textContent = `${card.employeeId} · Template ${card.templateNumber}`;
             const buttons = document.createElement('div'); buttons.className = 'card-buttons';
             const download = document.createElement('button'); download.type = 'button'; download.textContent = 'Download'; download.addEventListener('click', () => downloadBlob(card.blob, cardFileName(card.fullName)));
             const regenerate = document.createElement('button'); regenerate.type = 'button'; regenerate.textContent = 'Regenerate'; regenerate.addEventListener('click', () => regenerateCard(card.employeeId));
-            buttons.append(download, regenerate); meta.append(name, detail, buttons); article.append(image, meta); elements.cardGrid.appendChild(article);
+            buttons.append(download, regenerate); meta.append(selectLabel,name, detail, buttons); article.append(image, meta); elements.cardGrid.appendChild(article);
         });
         elements.cardCount.textContent = `${cards.length} card${cards.length === 1 ? '' : 's'}`;
         elements.cardEmpty.hidden = cards.length > 0;
         elements.downloadAllButton.disabled = cards.length === 0;
+        updateEmailButton();
     }
+
+    function updateEmailButton(){const count=cards.filter(card=>selectedCardIds.has(card.id)).length;elements.prepareEmailButton.disabled=count===0;elements.prepareEmailButton.textContent=count?`Prepare Email (${count})`:'Prepare Email';}
+
+    async function prepareBirthdayEmail(){const selected=cards.filter(card=>selectedCardIds.has(card.id));if(!selected.length)return;const date=new Date().toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'}),subject=`Birthday Cards - ${date}`,names=selected.map((card,index)=>`${index+1}. ${card.fullName}`).join('\n'),body=`Dear Team,\n\nPlease find the generated birthday cards for the following employees:\n\n${names}\n\nKindly review and share the attached cards.\n\nRegards,\nHR Team`,files=selected.map(card=>new File([card.blob],cardFileName(card.fullName),{type:'image/jpeg'}));try{if(navigator.share&&navigator.canShare?.({files})){await navigator.share({title:subject,text:body,files});showNotice('The selected birthday cards were shared. Choose Outlook and review the draft before sending.','success');return;}}catch(error){if(error.name==='AbortError')return;}selected.forEach(card=>downloadBlob(card.blob,cardFileName(card.fullName)));window.location.href=`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;showNotice('The selected JPG cards were downloaded and the email draft was opened. Attach the downloaded cards, then click Send.','warning');}
 
     async function regenerateCard(employeeId) {
         const employee = employees.find(item => item.id === employeeId); const photo = await get('photos', employeeId);
@@ -209,8 +217,10 @@
     }
 
     async function refreshData() {
+        const previousCardIds=new Set(cards.map(card=>card.id));
         employees = (await getAll('employees')).sort((a, b) => a.fullName.localeCompare(b.fullName));
         cards = (await getAll('cards')).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+        const currentCardIds=new Set(cards.map(card=>card.id));for(const id of selectedCardIds){if(!currentCardIds.has(id))selectedCardIds.delete(id);}cards.forEach(card=>{if(!previousCardIds.has(card.id))selectedCardIds.add(card.id);});
         renderCards();
     }
 
