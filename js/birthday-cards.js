@@ -78,10 +78,10 @@
 
     function validateHeaders(headers) {
         const expected = [
-            ['employeeid', 'employee id', 'empid', 'emp id'], ['fullname', 'full name', 'name'], ['location'], ['email', 'email address'], ['dob', 'date of birth']
+            ['employeeid', 'employee id', 'empid', 'emp id'], ['fullname', 'full name', 'name'], ['location'], ['email', 'email address'], ['dob', 'date of birth'], ['doj', 'date of joining', 'joining date']
         ];
         const invalid = expected.some((accepted, index) => !accepted.includes(normalize(headers[index])));
-        if (invalid) throw new Error('Invalid columns. Row 1 must be: A Employee ID, B Full Name, C Location, D Email, E DOB.');
+        if (invalid) throw new Error('Invalid columns. Row 1 must be: A Employee ID, B Full Name, C Location, D Email, E DOB, F DOJ.');
     }
 
     function createEmployee(row, rowNumber, existingIds, seenIds) {
@@ -93,14 +93,14 @@
         else if (existingIds.has(normalize(id))) status = 'Duplicate: already saved';
         else if (seenIds.has(normalize(id))) status = 'Duplicate ID in workbook';
         if (id) seenIds.add(normalize(id));
-        return { id, fullName, location: String(row[2] || '').trim(), email: String(row[3] || '').trim(), dob: String(row[4] || '').trim(), photo: false, birthdayCard: false, createdAt: new Date().toISOString(), rowNumber, status };
+        return { id, fullName, location: String(row[2] || '').trim(), email: String(row[3] || '').trim(), dob: String(row[4] || '').trim(), doj: String(row[5] || '').trim(), photo: false, birthdayCard: false, createdAt: new Date().toISOString(), rowNumber, status };
     }
 
     function renderExcelPreview() {
         elements.previewBody.replaceChildren();
         pendingEmployees.slice(0, 100).forEach(employee => {
             const row = document.createElement('tr');
-            [employee.id, employee.fullName, employee.location, employee.email, employee.dob, employee.status].forEach(value => {
+            [employee.id, employee.fullName, employee.location, employee.email, employee.dob, employee.doj, employee.status].forEach(value => {
                 const cell = document.createElement('td'); cell.textContent = value; row.appendChild(cell);
             });
             elements.previewBody.appendChild(row);

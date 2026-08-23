@@ -1,0 +1,15 @@
+.today-date { padding: 10px 14px; border-radius: 9px; color: #0759a5; background: #e7f1ff; font-weight: 700; }
+.info-note { margin-top: 24px; color: #0759a5; background: #e7f1ff; }
+.anniversary-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 24px; }
+.anniversary-summary article { padding: 20px; border: 1px solid #e1e4e8; border-radius: 12px; background: #fff; }
+.anniversary-summary strong { display: block; font-size: 28px; }
+.anniversary-summary span { color: #70757a; font-size: 13px; }
+.anniversary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; margin-top: 18px; }
+.anniversary-person { padding: 18px; border: 1px solid #f5d99a; border-radius: 12px; background: linear-gradient(135deg, #fffdf5, #fff6dc); }
+.anniversary-person strong { display: block; margin-bottom: 5px; font-size: 17px; }
+.anniversary-person span { display: block; color: #705a21; font-size: 13px; }
+.anniversary-badge { display: inline-flex !important; margin-top: 12px; padding: 5px 9px; border-radius: 999px; color: #8a4b00 !important; background: #ffe5ad; font-weight: 700; }
+.anniversary-table { border: 1px solid #e6e8eb; border-radius: 10px; border-collapse: separate; border-spacing: 0; overflow: hidden; }
+.anniversary-table th { background: #f4f5f7; }
+.anniversary-status { color: #8a5b00; font-weight: 700; }
+@media (max-width: 800px) { .anniversary-summary, .anniversary-grid { grid-template-columns: 1fr; } }

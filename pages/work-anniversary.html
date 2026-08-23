@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Work Anniversaries - Birthday Studio</title>
+    <link rel="stylesheet" href="../css/main.css"><link rel="stylesheet" href="../css/sidebar.css"><link rel="stylesheet" href="../css/birthday-cards.css"><link rel="stylesheet" href="../css/work-anniversary.css"><link rel="stylesheet" href="../css/responsive.css">
+    <script src="../js/navigation.js" defer data-root="../" data-page="work-anniversary"></script><script src="../js/work-anniversary.js" defer></script>
+</head>
+<body>
+    <main class="cards-page anniversary-page">
+        <header class="cards-header"><div><h1>🎊 Work Anniversaries</h1><p>Automatically identified from each employee’s Date of Joining.</p></div><div class="today-date" id="todayDate"></div></header>
+        <div class="notice info-note" role="status">No manual New button is required. This page checks employee DOJ automatically whenever it opens.</div>
+        <section class="anniversary-summary"><article><strong id="todayCount">0</strong><span>Today</span></article><article><strong id="upcomingCount">0</strong><span>Next 30 days</span></article><article><strong id="missingCount">0</strong><span>Missing/invalid DOJ</span></article></section>
+        <section class="content-section today-section"><div class="section-heading"><div><h2>Today’s Work Anniversaries</h2><p>Employees recognized today</p></div></div><div class="empty-state info" id="todayEmpty">No work anniversaries today.</div><div class="anniversary-grid" id="todayGrid"></div></section>
+        <section class="content-section"><div class="section-heading"><div><h2>Upcoming Anniversaries</h2><p>Next 30 days</p></div><input class="search-input" id="anniversarySearch" type="search" placeholder="Search name or location…" aria-label="Search work anniversaries"></div><div class="empty-state" id="upcomingEmpty">No upcoming work anniversaries in the next 30 days.</div><div class="table-scroll" id="upcomingTableWrap" hidden><table class="anniversary-table"><thead><tr><th>Employee ID</th><th>Name</th><th>Location</th><th>DOJ</th><th>Completing</th><th>Anniversary Date</th><th>Status</th></tr></thead><tbody id="upcomingBody"></tbody></table></div></section>
+    </main>
+</body></html>

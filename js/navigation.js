@@ -9,6 +9,7 @@ const navigationItems = [
     { id: 'birthday-cards', label: 'Birthday cards', href: 'pages/birthday-cards.html', icon: 'image.svg', subpage: true },
     { id: 'awards-certificates', label: 'Awards & Certificates', href: 'pages/awards-certificates.html', icon: 'award.svg', subpage: true },
     { id: 'farewell-card', label: 'Farewell cards', href: 'pages/farewell-card.html', icon: 'send.svg', subpage: true },
+    { id: 'work-anniversary', label: 'Work anniversaries', href: 'pages/work-anniversary.html', icon: 'clock.svg', subpage: true },
     { id: 'settings', label: 'Settings', href: 'pages/settings.html', icon: 'settings.svg' },
     { section: 'GENERATE CARDS' },
     { id: 'birthday-generator', label: 'B’Day celebration card', href: 'pages/birthday-generator.html', icon: 'award.svg' },
