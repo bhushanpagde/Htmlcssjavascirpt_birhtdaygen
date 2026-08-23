@@ -4,6 +4,8 @@
 .employee-table { min-width: 1120px; border: 1px solid #e6e8eb; border-radius: 10px; border-collapse: separate; border-spacing: 0; overflow: hidden; box-shadow: 0 4px 12px #0000000a; }
 .employee-table th { background: #f4f5f7; }
 .employee-table tr:last-child td { border-bottom: 0; }
+.employee-table .employee-row-selected td { background: #eef6ff; }
+.employee-table .employee-row-selected td:first-child { box-shadow: inset 4px 0 #1677ff; }
 .employee-table th:nth-child(2), .employee-table td:nth-child(2) { min-width: 250px; }
 .employee-profile { display: flex; align-items: center; gap: 11px; }
 .employee-avatar { display: grid; width: 42px; height: 42px; flex: 0 0 42px; overflow: hidden; place-items: center; border: 1px solid #e0e4e8; border-radius: 50%; color: #3f5367; background: #eaf0f5; font-size: 12px; font-weight: 700; }

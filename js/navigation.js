@@ -4,16 +4,19 @@ const currentPage = navigationScript?.dataset.page || '';
 
 const navigationItems = [
     { section: 'WORKSPACE' },
-    { id: 'assistant', label: 'Assistant', href: 'index.html', icon: 'sparkles.svg' },
+    { id: 'assistant', label: 'Dashboard', href: 'index.html', icon: 'sparkles.svg' },
     { id: 'employees', label: 'Employees', href: 'pages/employees.html', icon: 'users.svg' },
     { id: 'birthday-cards', label: 'Birthday cards', href: 'pages/birthday-cards.html', icon: 'image.svg', subpage: true },
     { id: 'awards-certificates', label: 'Awards & Certificates', href: 'pages/awards-certificates.html', icon: 'award.svg', subpage: true },
     { id: 'farewell-card', label: 'Farewell cards', href: 'pages/farewell-card.html', icon: 'send.svg', subpage: true },
     { id: 'work-anniversary', label: 'Work anniversaries', href: 'pages/work-anniversary.html', icon: 'clock.svg', subpage: true },
     { id: 'settings', label: 'Settings', href: 'pages/settings.html', icon: 'settings.svg' },
-    { section: 'GENERATE CARDS' },
-    { id: 'birthday-generator', label: 'B’Day celebration card', href: 'pages/birthday-generator.html', icon: 'award.svg' },
-    { id: 'event-card', label: 'Event card', href: 'pages/event-card.html', icon: 'clock.svg' }
+    { section: 'NOTIFICATION MAKER' },
+    { id: 'birthday-generator', label: 'Birthday celebrations', href: 'pages/birthday-generator.html', icon: 'award.svg' },
+    { id: 'event-card', label: 'Events', href: 'pages/event-card.html', icon: 'clock.svg' },
+    { id: 'festival', label: 'Festival', href: 'pages/festival.html', icon: 'sparkles.svg' },
+    { id: 'announcements', label: 'Announcements', href: 'pages/announcements.html', icon: 'send.svg' },
+    { id: 'new-joinee', label: 'New Joinee', href: 'pages/new-joinee.html', icon: 'user-plus.svg' }
 ];
 
 function createSidebar() {

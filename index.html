@@ -16,29 +16,48 @@
         <div class="brand">🎂 <b>Birthday Studio</b><small>Employee celebration hub</small></div>
         <nav aria-label="Primary navigation">
             <span>WORKSPACE</span>
-            <a class="active" href="index.html" aria-current="page"><img src="assets/icons/sparkles.svg" alt="">Assistant</a>
+            <a class="active" href="index.html" aria-current="page"><img src="assets/icons/sparkles.svg" alt="">Dashboard</a>
             <a href="pages/employees.html"><img src="assets/icons/users.svg" alt="">Employees</a>
             <a class="subpage" href="pages/birthday-cards.html"><img src="assets/icons/image.svg" alt="">Birthday cards</a>
             <a class="subpage" href="pages/awards-certificates.html"><img src="assets/icons/award.svg" alt="">Awards &amp; Certificates</a>
             <a class="subpage" href="pages/farewell-card.html"><img src="assets/icons/send.svg" alt="">Farewell cards</a>
             <a class="subpage" href="pages/work-anniversary.html"><img src="assets/icons/clock.svg" alt="">Work anniversaries</a>
             <a href="pages/settings.html"><img src="assets/icons/settings.svg" alt="">Settings</a>
-            <span>GENERATE CARDS</span>
-            <a href="pages/birthday-generator.html"><img src="assets/icons/award.svg" alt="">B’Day celebration card</a>
-            <a href="pages/event-card.html"><img src="assets/icons/clock.svg" alt="">Event card</a>
+            <span>NOTIFICATION MAKER</span>
+            <a href="pages/birthday-generator.html"><img src="assets/icons/award.svg" alt="">Birthday celebrations</a>
+            <a href="pages/event-card.html"><img src="assets/icons/clock.svg" alt="">Events</a>
+            <a href="pages/festival.html"><img src="assets/icons/sparkles.svg" alt="">Festival</a>
+            <a href="pages/announcements.html"><img src="assets/icons/send.svg" alt="">Announcements</a>
+            <a href="pages/new-joinee.html"><img src="assets/icons/user-plus.svg" alt="">New Joinee</a>
         </nav>
     </aside>
-    <main>
-        <section class="hero">
-            <div class="spark">✦</div>
-            <h1>How can I help today?</h1>
-            <p>Ask anything about your employee birthday-card workspace.</p>
-            <div class="prompts"><button>▧ How do I upload Excel?</button><button>♟ Show employee
-                    status</button><button>✦ How are cards made?</button></div>
-            <div class="message">🎂 Hi! I’m your Birthday Assistant. This standalone dashboard runs directly in your
-                browser.</div>
-        </section>
-        <div class="composer">Message Birthday Assistant... <button>↑</button></div>
+    <main class="dashboard-page">
+        <div class="dashboard-layout">
+            <div class="dashboard-primary">
+                <header class="dashboard-header"><div><span class="eyebrow">EMPLOYEE CELEBRATION HUB</span><h1>Dashboard</h1><p>Live overview of employees, birthdays, and work anniversaries.</p></div></header>
+                <section class="kpi-grid" aria-label="Employee celebration summary">
+                    <article class="kpi-card kpi-employees"><div class="kpi-icon"><img src="assets/icons/user-plus.svg" alt=""></div><div class="kpi-content"><span>Added Employees</span><strong id="addedEmployees">—</strong><small>Total employee records</small></div></article>
+                    <article class="kpi-card kpi-today"><div class="kpi-icon"><img src="assets/icons/award.svg" alt=""></div><div class="kpi-content"><span>Today’s Birthday</span><strong id="todayBirthdays">—</strong><small>Celebrating today</small></div></article>
+                    <article class="kpi-card kpi-birthday"><div class="kpi-icon"><img src="assets/icons/image.svg" alt=""></div><div class="kpi-content"><span>Birthdays This Month</span><strong id="monthBirthdays">—</strong><small id="birthdayMonthLabel">Current month</small></div></article>
+                </section>
+                <section class="dashboard-card-carousel" aria-labelledby="createdCardsTitle">
+                    <div class="carousel-heading"><div><span class="carousel-kicker">LATEST CREATIONS</span><h2 id="createdCardsTitle">Created Birthday Cards</h2><p>Scroll through recently generated employee cards.</p></div><div class="carousel-controls"><button id="cardsPrevious" type="button" aria-label="Previous birthday card">←</button><button id="cardsNext" type="button" aria-label="Next birthday card">→</button></div></div>
+                    <div class="carousel-empty" id="createdCardsEmpty">Generated birthday cards will appear here.</div>
+                    <div class="carousel-viewport" id="createdCardsViewport" hidden><div class="carousel-track" id="createdCardsTrack"></div></div>
+                    <div class="carousel-dots" id="createdCardsDots" aria-hidden="true"></div>
+                </section>
+            </div>
+            <aside class="dashboard-aside">
+                <div class="dashboard-date" id="dashboardDate"></div>
+                <article class="kpi-card kpi-anniversary"><div class="kpi-icon"><img src="assets/icons/clock.svg" alt=""></div><div class="kpi-content"><span>Anniversaries This Month</span><strong id="monthAnniversaries">—</strong><small id="anniversaryMonthLabel">Current month</small></div></article>
+                <section class="missing-photo-panel" aria-labelledby="missingPhotoTitle">
+                    <div class="missing-photo-heading"><div class="missing-photo-title"><div class="missing-photo-heading-icon"><img src="assets/icons/user.svg" alt=""></div><div><h2 id="missingPhotoTitle">Missing Photos</h2><p>Employees who still need a profile photo</p></div></div><span class="missing-photo-count" id="missingPhotoCount">0</span></div>
+                    <div class="missing-photo-empty" id="missingPhotoEmpty">All employees have uploaded photos.</div>
+                    <div class="missing-photo-list" id="missingPhotoList"></div>
+                </section>
+            </aside>
+        </div>
+        <div class="dashboard-notice" id="dashboardNotice" hidden role="status"></div>
     </main>
     <script src="js/app.js"></script>
 </body>
