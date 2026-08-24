@@ -3,7 +3,7 @@
     inset: 14px auto 14px 12px;
     width: 260px;
     border: 1px solid #ddd;
-    border-radius: 24px;
+    border-radius: 28px;
     background: #fff;
     padding: 92px 24px;
     box-shadow: 0 8px 25px #0000000a;
@@ -12,14 +12,42 @@
 
 .brand {
     font-size: 16px;
-    margin-bottom: 50px
+    margin-bottom: 30px;
+    display: flex;
+    flex-direction: row;
+    /* Rows items horizontally */
+    align-items: center;
+    /* Vertically centers the text alongside the image */
+    gap: 16px;
+    /* Adds clean spacing between the image and the text */
+}
+.brand h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1e293b; /* Dark slate text */
+    margin: 0;
+    line-height: 1.2;
+}
+
+/* Container for text elements, stacked vertically and left-aligned */
+.brand-text-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.brand img {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px; /* Smooth rounded corners matching the image */
+    object-fit: cover;
 }
 
 .brand small {
-    display: block;
-    margin: 8px 0 0 48px;
-    color: #8b8b8b;
-    font-size: 11px
+    font-size: 14px;
+    color: #64748b;
+    /* Muted gray text */
+    margin: 4px 0 0 0;
+    line-height: 1.2;
 }
 
 .sidebar nav {
