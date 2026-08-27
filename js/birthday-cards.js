@@ -1,8 +1,6 @@
 (() => {
     'use strict';
 
-    const DB_NAME = 'birthday-studio';
-    const DB_VERSION = 2;
     const OUTPUT_WIDTH = 1020;
     const OUTPUT_HEIGHT = 1900;
     const PHOTO_SIZE = 800;
@@ -11,13 +9,11 @@
     const TEMPLATE_Y = [850, 735, 820, 800, 850, 850, 850, 850, 850, 850, 850, 820, 850, 800, 800, 850, 850, 850, 850, 850, 850, 850, 850, 820, 850, 820, 800];
 
     const elements = {};
-    let database;
     let pendingWorkbook = null;
     let pendingEmployees = [];
     let employees = [];
     let cards = [];
     const selectedCardIds = new Set();
-    let galleryUrls = [];
     let dialogCard = null;
 
     document.addEventListener('DOMContentLoaded', initialize);
@@ -36,9 +32,8 @@
             return;
         }
 
-        database = await openDatabase();
         bindEvents();
-        await refreshData();
+        try { await refreshData(); } catch (error) { showNotice(`Could not connect to the server: ${error.message}`, 'error'); }
     }
 
     function bindEvents() {
@@ -122,9 +117,8 @@
             const stamp = timestamp();
             const extension = pendingWorkbook.file.name.split('.').pop().toLowerCase();
             const savedName = `Birthdays_${stamp}.${extension}`;
-            await put('files', { id: savedName, name: savedName, type: 'workbook', blob: pendingWorkbook.blob, savedAt: new Date().toISOString() });
             setProgress(55, 'Saving employee records…');
-            for (const employee of valid) await put('employees', employee);
+            for (const employee of valid) await HRCanvasAPI.createEmployee(employee);
             setProgress(100, 'Completed');
             showNotice(`Saved ${savedName} and added ${valid.length} employee(s). ${pendingEmployees.length - valid.length} row(s) skipped.`, 'success');
             pendingWorkbook = null; pendingEmployees = []; elements.excelInput.value = ''; elements.excelPreview.hidden = true; elements.uploadPanel.hidden = true;
@@ -147,20 +141,17 @@
         context.save(); roundedRect(context, x, y, PHOTO_SIZE, PHOTO_SIZE, 80); context.clip(); drawImageCover(context, photo, x, y, PHOTO_SIZE, PHOTO_SIZE); context.restore();
         const blob = await canvasToBlob(canvas, 'image/jpeg', .95);
         const fileName = cardFileName(employee.fullName);
-        const card = { id: employee.id, employeeId: employee.id, fullName: employee.fullName, templateNumber, fileName, blob, createdAt: new Date().toISOString() };
-        await put('cards', card);
-        employee.birthdayCard = true; employee.updatedAt = new Date().toISOString(); await put('employees', employee);
-        return card;
+        const saved = await HRCanvasAPI.uploadCard(employee.id, templateNumber, blob);
+        return { id: employee.id, employeeId: employee.id, fullName: employee.fullName, templateNumber, fileName, blob, url: saved.url, createdAt: new Date().toISOString() };
     }
 
     function renderCards() {
-        galleryUrls.forEach(URL.revokeObjectURL); galleryUrls = [];
         const query = normalize(elements.cardSearch.value);
         const visible = cards.filter(card => normalize(`${card.employeeId} ${card.fullName}`).includes(query));
         elements.cardGrid.replaceChildren();
         visible.forEach(card => {
             const article = document.createElement('article'); article.className = 'card-item';
-            const image = document.createElement('img'); const url = URL.createObjectURL(card.blob); galleryUrls.push(url); image.src = url; image.alt = `Birthday card for ${card.fullName}`;
+            const image = document.createElement('img'); image.src = card.url; image.alt = `Birthday card for ${card.fullName}`;
             image.addEventListener('click', () => previewCard(card));
             const meta = document.createElement('div'); meta.className = 'card-meta';
             const selectLabel = document.createElement('label'); selectLabel.className = 'card-select'; const select = document.createElement('input'); select.type = 'checkbox'; select.checked = selectedCardIds.has(card.id); select.addEventListener('change', () => { if (select.checked) selectedCardIds.add(card.id); else selectedCardIds.delete(card.id); updateEmailButton(); }); selectLabel.append(select, document.createTextNode('Include in email'));
@@ -182,14 +173,15 @@
     async function prepareBirthdayEmail() { const selected = cards.filter(card => selectedCardIds.has(card.id)); if (!selected.length) return; const subject = 'Birthday Cards', names = selected.map((card, index) => `${index + 1}. ${card.fullName}`).join('\n'), body = `Subject: Birthday Cards\n\nDear Team,\n\nPlease find the generated birthday cards for the following employees:\n\n${names}\n\nKindly review and share the attached cards.\n\nRegards,\nHR Team`, files = selected.map(card => new File([card.blob], cardFileName(card.fullName), { type: 'image/jpeg' })); try { if (navigator.share && navigator.canShare?.({ files })) { await navigator.share({ title: subject, text: body, files }); showNotice('The selected birthday cards were attached. Enter the recipient in Outlook, copy Birthday Cards into Subject, review the message, and click Send.', 'success'); return; } } catch (error) { if (error.name === 'AbortError') return; } selected.forEach(card => downloadBlob(card.blob, cardFileName(card.fullName))); window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`; showNotice('Sharing attachments is unavailable in this browser. The JPG cards were downloaded and a draft was opened; attach them manually before sending.', 'warning'); }
 
     async function regenerateCard(employeeId) {
-        const employee = employees.find(item => item.id === employeeId); const photo = await get('photos', employeeId);
+        const employee = employees.find(item => item.id === employeeId); let photo;
+        try { const metadata = await HRCanvasAPI.getPhoto(employeeId); photo = await HRCanvasAPI.fetchBlob(metadata.url); } catch { photo = null; }
         if (!employee || !photo) { showNotice('The employee photo is unavailable. Upload it again.', 'error'); return; }
-        try { setProgress(25, 'Regenerating card…'); await generateAndSaveCard(employee, photo.blob); setProgress(100, 'Card regenerated'); showNotice(`Created a new card for ${employee.fullName}.`, 'success'); await refreshData(); setTimeout(() => { elements.progressWrap.hidden = true; }, 600); }
+        try { setProgress(25, 'Regenerating card…'); await generateAndSaveCard(employee, photo); setProgress(100, 'Card regenerated'); showNotice(`Created a new card for ${employee.fullName}.`, 'success'); await refreshData(); setTimeout(() => { elements.progressWrap.hidden = true; }, 600); }
         catch (error) { elements.progressWrap.hidden = true; showNotice(error.message, 'error'); }
     }
 
     function previewCard(card) {
-        dialogCard = card; elements.dialogImage.src = URL.createObjectURL(card.blob); elements.dialogName.textContent = card.fullName; elements.cardDialog.showModal();
+        dialogCard = card; elements.dialogImage.src = card.url; elements.dialogName.textContent = card.fullName; elements.cardDialog.showModal();
     }
 
     async function downloadAllCards() {
@@ -210,7 +202,7 @@
         if (!file) return;
         try {
             const payload = JSON.parse(await file.text()); if (!Array.isArray(payload.employees)) throw new Error('Backup does not contain an employees list.');
-            for (const employee of payload.employees) { if (employee.id && employee.fullName) await put('employees', employee); }
+            for (const employee of payload.employees) { if (employee.id && employee.fullName) { try { await HRCanvasAPI.createEmployee(employee); } catch (error) { if (!/already exists/i.test(error.message)) throw error; } } }
             showNotice(`Imported ${payload.employees.length} employee record(s). Photos and generated images must be uploaded again.`, 'success'); await refreshData();
         } catch (error) { showNotice(`Backup import failed: ${error.message}`, 'error'); }
         elements.importInput.value = '';
@@ -218,8 +210,9 @@
 
     async function refreshData() {
         const previousCardIds = new Set(cards.map(card => card.id));
-        employees = (await getAll('employees')).sort((a, b) => a.fullName.localeCompare(b.fullName));
-        cards = (await getAll('cards')).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+        employees = (await HRCanvasAPI.listEmployees()).sort((a, b) => a.fullName.localeCompare(b.fullName));
+        const serverCards = (await HRCanvasAPI.listCards()).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+        cards = await Promise.all(serverCards.map(async card => ({ ...card, id: card.employeeId, blob: await HRCanvasAPI.fetchBlob(card.url) })));
         const currentCardIds = new Set(cards.map(card => card.id)); for (const id of selectedCardIds) { if (!currentCardIds.has(id)) selectedCardIds.delete(id); } cards.forEach(card => { if (!previousCardIds.has(card.id)) selectedCardIds.add(card.id); });
         renderCards();
     }
@@ -229,26 +222,6 @@
         if (!source) throw new Error(`Embedded template ${templateNumber} is unavailable.`);
         return source;
     }
-
-    function openDatabase() {
-        return new Promise((resolve, reject) => {
-            const request = indexedDB.open(DB_NAME, DB_VERSION);
-            request.onupgradeneeded = () => {
-                const db = request.result;
-                ['employees', 'photos', 'cards', 'files'].forEach(store => { if (!db.objectStoreNames.contains(store)) db.createObjectStore(store, { keyPath: 'id' }); });
-                if (!db.objectStoreNames.contains('certificates')) db.createObjectStore('certificates', { keyPath: 'id' });
-                if (!db.objectStoreNames.contains('settings')) db.createObjectStore('settings', { keyPath: 'key' });
-            };
-            request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error);
-        });
-    }
-
-    function storeRequest(storeName, mode, operation) {
-        return new Promise((resolve, reject) => { const transaction = database.transaction(storeName, mode); const request = operation(transaction.objectStore(storeName)); request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error); });
-    }
-    const put = (store, value) => storeRequest(store, 'readwrite', objectStore => objectStore.put(value));
-    const get = (store, key) => storeRequest(store, 'readonly', objectStore => objectStore.get(key));
-    const getAll = store => storeRequest(store, 'readonly', objectStore => objectStore.getAll());
 
     function setProgress(value, label) { elements.progressWrap.hidden = false; elements.progressBar.value = value; elements.progressValue.textContent = `${value}%`; elements.progressText.textContent = label; }
     function showNotice(message, type) { elements.notice.textContent = message; elements.notice.className = `notice ${type}`; elements.notice.hidden = false; elements.notice.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }

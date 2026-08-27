@@ -105,14 +105,24 @@ if ($method === 'DELETE') {
     if ($id === '') {
         fail('Employee id is required in the query string.', 422);
     }
+    $paths = database()->prepare(
+        'SELECT relative_path FROM photos WHERE employee_id = ?
+         UNION ALL SELECT relative_path FROM birthday_cards WHERE employee_id = ?
+         UNION ALL SELECT pdf_path FROM certificates WHERE employee_id = ?
+         UNION ALL SELECT thumbnail_path FROM certificates WHERE employee_id = ? AND thumbnail_path IS NOT NULL'
+    );
+    $paths->execute([$id, $id, $id, $id]);
+    $storedPaths = $paths->fetchAll(PDO::FETCH_COLUMN);
     $statement = database()->prepare('DELETE FROM employees WHERE id = ?');
     $statement->execute([$id]);
     if ($statement->rowCount() === 0) {
         fail('Employee not found.', 404);
+    }
+    foreach ($storedPaths as $storedPath) {
+        deleteStoredFile($storedPath);
     }
     respond(['ok' => true, 'id' => $id]);
 }
 
 header('Allow: GET, POST, PUT, DELETE');
 fail('Method not allowed.', 405);
-
