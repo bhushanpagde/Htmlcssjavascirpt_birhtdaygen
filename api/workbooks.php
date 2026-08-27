@@ -125,6 +125,7 @@ respond([
     'id' => $fileId,
     'fileName' => $storedName,
     'relativePath' => $relativePath,
+    'url' => publicUrl($relativePath),
     'inserted' => $inserted,
     'skipped' => $skipped,
 ], 201);

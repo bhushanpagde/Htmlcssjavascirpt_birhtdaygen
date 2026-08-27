@@ -39,7 +39,7 @@ Use this checklist to migrate HR Canvas from browser-only IndexedDB storage to s
 - [x] Return JSON with consistent HTTP status codes and error objects.
 - [x] Test the implemented list, create, update, and delete employee endpoints on XAMPP/LAN.
 - [x] Implement and remotely test photo upload, retrieval, replacement, direct access, and deletion endpoints.
-- [ ] Implement workbook upload and import endpoints.
+- [x] Implement and remotely test transactional workbook upload/import, duplicate handling, listing, direct access, and deletion endpoints.
 - [x] Implement and remotely test birthday-card save, list, direct access, replacement, and delete endpoints.
 - [ ] Connect frontend birthday-card generation/regeneration to the server endpoint.
 - [ ] Implement certificate save, list, download, and delete endpoints.
@@ -60,10 +60,10 @@ Use this checklist to migrate HR Canvas from browser-only IndexedDB storage to s
 
 ## 6. Frontend conversion
 
-- [ ] Add one reusable JavaScript API client.
+- [x] Add one reusable JavaScript API client.
 - [ ] Replace IndexedDB calls in `js/app.js`.
-- [ ] Replace IndexedDB calls in `js/employees.js`.
-- [ ] Replace IndexedDB calls in `js/birthday-cards.js`.
+- [x] Replace IndexedDB calls in `js/employees.js` (browser workflow test pending).
+- [x] Replace IndexedDB calls in `js/birthday-cards.js` (browser workflow test pending).
 - [ ] Replace IndexedDB calls in `js/awards-certificates.js`.
 - [ ] Replace IndexedDB calls in `js/work-anniversary.js`.
 - [ ] Replace IndexedDB calls in `js/farewell-card.js`.
