@@ -3,8 +3,44 @@ declare(strict_types=1);
 
 require __DIR__ . '/bootstrap.php';
 
-if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
-    header('Allow: POST');
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+$connection = database();
+
+if ($method === 'GET') {
+    $statement = $connection->query(
+        "SELECT id, original_name AS originalName, stored_name AS storedName,
+                relative_path AS relativePath, mime_type AS mimeType, file_size AS fileSize,
+                saved_at AS savedAt
+         FROM files WHERE file_type = 'workbook' ORDER BY saved_at DESC, id DESC"
+    );
+    $workbooks = $statement->fetchAll();
+    foreach ($workbooks as &$workbook) {
+        $workbook['id'] = (int) $workbook['id'];
+        $workbook['fileSize'] = (int) $workbook['fileSize'];
+        $workbook['url'] = publicUrl($workbook['relativePath']);
+    }
+    respond(['ok' => true, 'workbooks' => $workbooks, 'count' => count($workbooks)]);
+}
+
+if ($method === 'DELETE') {
+    $id = filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+    if ($id === false) {
+        fail('A valid workbook id is required.', 422);
+    }
+    $statement = $connection->prepare("SELECT relative_path FROM files WHERE id = ? AND file_type = 'workbook'");
+    $statement->execute([$id]);
+    $relativePath = $statement->fetchColumn();
+    if (!$relativePath) {
+        fail('Workbook not found.', 404);
+    }
+    $delete = $connection->prepare("DELETE FROM files WHERE id = ? AND file_type = 'workbook'");
+    $delete->execute([$id]);
+    deleteStoredFile($relativePath);
+    respond(['ok' => true, 'id' => $id]);
+}
+
+if ($method !== 'POST') {
+    header('Allow: GET, POST, DELETE');
     fail('Method not allowed.', 405);
 }
 
@@ -37,7 +73,6 @@ if (!move_uploaded_file($upload['file']['tmp_name'], $destination)) {
     throw new RuntimeException('The server could not save the workbook.');
 }
 
-$connection = database();
 $inserted = 0;
 $skipped = 0;
 try {
@@ -47,6 +82,7 @@ try {
          VALUES (?, ?, ?, ?, ?, ?)'
     );
     $fileStatement->execute([$originalName, $storedName, 'workbook', $relativePath, $upload['mimeType'], $upload['size']]);
+    $fileId = (int) $connection->lastInsertId();
     $employeeStatement = $connection->prepare(
         'INSERT IGNORE INTO employees (id, full_name, location, email, dob, doj) VALUES (?, ?, ?, ?, ?, ?)'
     );
@@ -86,9 +122,9 @@ try {
 
 respond([
     'ok' => true,
+    'id' => $fileId,
     'fileName' => $storedName,
     'relativePath' => $relativePath,
     'inserted' => $inserted,
     'skipped' => $skipped,
 ], 201);
-

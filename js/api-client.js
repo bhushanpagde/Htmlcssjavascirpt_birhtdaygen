@@ -30,6 +30,8 @@
         updateEmployee: (id, employee) => request(`employees.php?id=${encodeURIComponent(id)}`, json('PUT', employee)),
         deleteEmployee: id => request(`employees.php?id=${encodeURIComponent(id)}`, { method: 'DELETE' }),
         uploadWorkbook: (workbook, employees) => request('workbooks.php', form({ workbook, employees: JSON.stringify(employees) })),
+        listWorkbooks: async () => (await request('workbooks.php')).workbooks,
+        deleteWorkbook: id => request(`workbooks.php?id=${encodeURIComponent(id)}`, { method: 'DELETE' }),
         listPhotos: async () => (await request('photos.php')).photos,
         getPhoto: async id => (await request(`photos.php?employeeId=${encodeURIComponent(id)}`)).photos[0],
         uploadPhoto: (employeeId, photo) => request('photos.php', form({ employeeId, photo })),
