@@ -61,7 +61,7 @@ Use this checklist to migrate HR Canvas from browser-only IndexedDB storage to s
 ## 6. Frontend conversion
 
 - [x] Add one reusable JavaScript API client.
-- [ ] Replace IndexedDB calls in `js/app.js`.
+- [x] Replace IndexedDB calls in `js/app.js` (browser workflow test pending).
 - [x] Replace IndexedDB calls in `js/employees.js` (browser workflow test pending).
 - [x] Replace IndexedDB calls in `js/birthday-cards.js` (browser workflow test pending).
 - [ ] Replace IndexedDB calls in `js/awards-certificates.js`.
