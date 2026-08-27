@@ -80,8 +80,80 @@ function optionalText(array $input, string $key, int $maximum = 255): string
     return $value;
 }
 
+function requireEmployee(PDO $connection, string $employeeId): array
+{
+    $statement = $connection->prepare('SELECT id, full_name AS fullName FROM employees WHERE id = ?');
+    $statement->execute([$employeeId]);
+    $employee = $statement->fetch();
+    if (!$employee) {
+        fail('Employee not found.', 404);
+    }
+    return $employee;
+}
+
+function safeFilePart(string $value, string $fallback = 'file'): string
+{
+    $value = preg_replace('/[^A-Za-z0-9._-]+/', '_', trim($value)) ?? '';
+    $value = trim($value, '._-');
+    return $value !== '' ? substr($value, 0, 100) : $fallback;
+}
+
+function storageDirectory(string $name): string
+{
+    if (!preg_match('/^[a-z0-9-]+$/', $name)) {
+        throw new InvalidArgumentException('Invalid storage directory.');
+    }
+    $directory = HRCANVAS_ROOT . '/storage/' . $name;
+    if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) {
+        throw new RuntimeException("Could not create storage/$name.");
+    }
+    if (!is_writable($directory)) {
+        throw new RuntimeException("storage/$name is not writable.");
+    }
+    return $directory;
+}
+
+function uploadedFile(string $field, array $allowedMimeTypes, int $maximumBytes): array
+{
+    $file = $_FILES[$field] ?? null;
+    if (!is_array($file) || !isset($file['error'], $file['tmp_name'], $file['size'])) {
+        fail("Upload field '$field' is required.", 422);
+    }
+    if ((int) $file['error'] !== UPLOAD_ERR_OK) {
+        fail('The file upload failed.', 422, ['uploadError' => (int) $file['error']]);
+    }
+    $size = (int) $file['size'];
+    if ($size < 1 || $size > $maximumBytes) {
+        fail('The uploaded file size is not allowed.', 422, ['maximumBytes' => $maximumBytes]);
+    }
+    if (!is_uploaded_file((string) $file['tmp_name'])) {
+        fail('The uploaded file is invalid.', 422);
+    }
+    $mimeType = (new finfo(FILEINFO_MIME_TYPE))->file((string) $file['tmp_name']);
+    if (!is_string($mimeType) || !isset($allowedMimeTypes[$mimeType])) {
+        fail('The uploaded file type is not allowed.', 415);
+    }
+    return ['file' => $file, 'mimeType' => $mimeType, 'extension' => $allowedMimeTypes[$mimeType], 'size' => $size];
+}
+
+function publicUrl(string $relativePath): string
+{
+    $applicationPath = str_replace('\\', '/', dirname(dirname($_SERVER['SCRIPT_NAME'] ?? '/')));
+    return rtrim($applicationPath, '/') . '/' . ltrim($relativePath, '/');
+}
+
+function deleteStoredFile(?string $relativePath): void
+{
+    if (!$relativePath || !str_starts_with(str_replace('\\', '/', $relativePath), 'storage/')) {
+        return;
+    }
+    $path = HRCANVAS_ROOT . '/' . str_replace('\\', '/', $relativePath);
+    if (is_file($path) && !unlink($path)) {
+        error_log("Could not delete stored file: $path");
+    }
+}
+
 set_exception_handler(static function (Throwable $error): never {
     error_log($error->__toString());
     fail('The server could not complete the request.', 500);
 });
-
