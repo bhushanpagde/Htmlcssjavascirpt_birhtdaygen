@@ -15,7 +15,8 @@ Use this checklist to migrate HR Canvas from browser-only IndexedDB storage to s
 - [ ] Install and start Apache and MySQL/MariaDB in XAMPP.
 - [ ] Deploy the application under `C:\xampp\htdocs\hrcanvas`.
 - [x] Create a PHP API directory such as `api/`.
-- [x] Create storage directories for photos, cards, certificates, workbooks, and backups (server write access still needs verification).
+- [x] Create storage directories for photos, cards, certificates, workbooks, and backups.
+- [x] Verify server write/delete access for photo and birthday-card storage (remaining storage types pending).
 - [ ] Keep configuration and credentials outside publicly downloadable folders where possible.
 - [x] Add `.gitignore` rules for credentials, uploaded files, generated files, logs, and local backups.
 - [ ] Confirm `http://localhost/hrcanvas/` loads without console or missing-file errors.
@@ -37,9 +38,10 @@ Use this checklist to migrate HR Canvas from browser-only IndexedDB storage to s
 - [x] Add one shared database connection/configuration module.
 - [x] Return JSON with consistent HTTP status codes and error objects.
 - [x] Test the implemented list, create, update, and delete employee endpoints on XAMPP/LAN.
-- [ ] Implement photo upload, retrieval, replacement, and deletion endpoints.
+- [x] Implement and remotely test photo upload, retrieval, replacement, direct access, and deletion endpoints.
 - [ ] Implement workbook upload and import endpoints.
-- [ ] Implement birthday-card save, list, download, regenerate, and delete endpoints.
+- [x] Implement and remotely test birthday-card save, list, direct access, replacement, and delete endpoints.
+- [ ] Connect frontend birthday-card generation/regeneration to the server endpoint.
 - [ ] Implement certificate save, list, download, and delete endpoints.
 - [ ] Implement settings read/update endpoints.
 - [ ] Implement backup export and restore endpoints.
