@@ -138,7 +138,7 @@
         const centerX = 510; const centerY = TEMPLATE_Y[templateNumber - 1] + PHOTO_TOP_OFFSET;
         const x = Math.max(0, Math.min(centerX - PHOTO_SIZE / 2, OUTPUT_WIDTH - PHOTO_SIZE));
         const y = Math.max(0, Math.min(centerY - PHOTO_SIZE / 2, OUTPUT_HEIGHT - PHOTO_SIZE));
-        context.save(); roundedRect(context, x, y, PHOTO_SIZE, PHOTO_SIZE, 80); context.clip(); drawImageCover(context, photo, x, y, PHOTO_SIZE, PHOTO_SIZE); context.restore();
+        context.save(); roundedRect(context, x, y, PHOTO_SIZE, PHOTO_SIZE, 80); context.clip(); drawImageContain(context, photo, x, y, PHOTO_SIZE, PHOTO_SIZE); context.restore();
         const blob = await canvasToBlob(canvas, 'image/jpeg', .95);
         const fileName = cardFileName(employee.fullName);
         const saved = await HRCanvasAPI.uploadCard(employee.id, templateNumber, blob);
@@ -234,7 +234,7 @@
     function timestamp() { const date = new Date(); const pad = value => String(value).padStart(2, '0'); return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}_${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`; }
     function loadImage(source) { return new Promise((resolve, reject) => { const image = new Image(); let url = source; if (source instanceof Blob) url = URL.createObjectURL(source); image.onload = () => { if (source instanceof Blob) URL.revokeObjectURL(url); resolve(image); }; image.onerror = () => { if (source instanceof Blob) URL.revokeObjectURL(url); reject(new Error('The image could not be loaded.')); }; image.src = url; }); }
     function roundedRect(context, x, y, width, height, radius) { context.beginPath(); context.roundRect(x, y, width, height, radius); }
-    function drawImageCover(context, image, x, y, width, height) { const ratio = Math.max(width / image.naturalWidth, height / image.naturalHeight); const drawWidth = image.naturalWidth * ratio; const drawHeight = image.naturalHeight * ratio; context.drawImage(image, x + (width - drawWidth) / 2, y + (height - drawHeight) / 2, drawWidth, drawHeight); }
+    function drawImageContain(context, image, x, y, width, height) { const ratio = Math.min(width / image.naturalWidth, height / image.naturalHeight); const drawWidth = image.naturalWidth * ratio, drawHeight = image.naturalHeight * ratio; context.fillStyle = '#f4f4f4'; context.fillRect(x, y, width, height); context.drawImage(image, x + (width - drawWidth) / 2, y + (height - drawHeight) / 2, drawWidth, drawHeight); }
     function canvasToBlob(canvas, type, quality) { return new Promise((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('The card could not be exported.')), type, quality)); }
     function downloadBlob(blob, fileName) { const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = fileName; document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
 })();
