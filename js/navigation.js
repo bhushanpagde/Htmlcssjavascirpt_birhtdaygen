@@ -27,7 +27,11 @@ function createSidebar() {
 
     const brand = document.createElement('div');
     brand.className = 'brand';
-    brand.innerHTML = '🎂 <b>Birthday Studio</b><small>Employee celebration hub</small>';
+    brand.innerHTML = `<img src="${rootPath}assets/icons/canvas.svg" alt="">
+        <div class="brand-text-wrapper">
+            <h1>HR Canvas</h1>
+            <small>Celebrating Events</small>
+        </div>`;
 
     const navigation = document.createElement('nav');
     navigation.setAttribute('aria-label', 'Primary navigation');

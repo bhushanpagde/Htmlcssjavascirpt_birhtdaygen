@@ -1,4 +1,4 @@
-BIRTHDAY STUDIO - STANDALONE
+HR CANVAS - STANDALONE
 
 1. Extract this archive.
 2. Double-click index.html.

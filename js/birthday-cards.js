@@ -163,13 +163,13 @@
             const image = document.createElement('img'); const url = URL.createObjectURL(card.blob); galleryUrls.push(url); image.src = url; image.alt = `Birthday card for ${card.fullName}`;
             image.addEventListener('click', () => previewCard(card));
             const meta = document.createElement('div'); meta.className = 'card-meta';
-            const selectLabel=document.createElement('label');selectLabel.className='card-select';const select=document.createElement('input');select.type='checkbox';select.checked=selectedCardIds.has(card.id);select.addEventListener('change',()=>{if(select.checked)selectedCardIds.add(card.id);else selectedCardIds.delete(card.id);updateEmailButton();});selectLabel.append(select,document.createTextNode('Include in email'));
+            const selectLabel = document.createElement('label'); selectLabel.className = 'card-select'; const select = document.createElement('input'); select.type = 'checkbox'; select.checked = selectedCardIds.has(card.id); select.addEventListener('change', () => { if (select.checked) selectedCardIds.add(card.id); else selectedCardIds.delete(card.id); updateEmailButton(); }); selectLabel.append(select, document.createTextNode('Include in email'));
             const name = document.createElement('strong'); name.textContent = card.fullName;
             const detail = document.createElement('small'); detail.textContent = `${card.employeeId} · Template ${card.templateNumber}`;
             const buttons = document.createElement('div'); buttons.className = 'card-buttons';
             const download = document.createElement('button'); download.type = 'button'; download.textContent = 'Download'; download.addEventListener('click', () => downloadBlob(card.blob, cardFileName(card.fullName)));
             const regenerate = document.createElement('button'); regenerate.type = 'button'; regenerate.textContent = 'Regenerate'; regenerate.addEventListener('click', () => regenerateCard(card.employeeId));
-            buttons.append(download, regenerate); meta.append(selectLabel,name, detail, buttons); article.append(image, meta); elements.cardGrid.appendChild(article);
+            buttons.append(download, regenerate); meta.append(selectLabel, name, detail, buttons); article.append(image, meta); elements.cardGrid.appendChild(article);
         });
         elements.cardCount.textContent = `${cards.length} card${cards.length === 1 ? '' : 's'}`;
         elements.cardEmpty.hidden = cards.length > 0;
@@ -177,9 +177,9 @@
         updateEmailButton();
     }
 
-    function updateEmailButton(){const count=cards.filter(card=>selectedCardIds.has(card.id)).length;elements.prepareEmailButton.disabled=count===0;elements.prepareEmailButton.textContent=count?`Prepare Email (${count})`:'Prepare Email';}
+    function updateEmailButton() { const count = cards.filter(card => selectedCardIds.has(card.id)).length; elements.prepareEmailButton.disabled = count === 0; elements.prepareEmailButton.textContent = count ? `Prepare Email (${count})` : 'Prepare Email'; }
 
-    async function prepareBirthdayEmail(){const selected=cards.filter(card=>selectedCardIds.has(card.id));if(!selected.length)return;const subject='Birthday Cards',names=selected.map((card,index)=>`${index+1}. ${card.fullName}`).join('\n'),body=`Subject: Birthday Cards\n\nDear Team,\n\nPlease find the generated birthday cards for the following employees:\n\n${names}\n\nKindly review and share the attached cards.\n\nRegards,\nHR Team`,files=selected.map(card=>new File([card.blob],cardFileName(card.fullName),{type:'image/jpeg'}));try{if(navigator.share&&navigator.canShare?.({files})){await navigator.share({title:subject,text:body,files});showNotice('The selected birthday cards were attached. Enter the recipient in Outlook, copy Birthday Cards into Subject, review the message, and click Send.','success');return;}}catch(error){if(error.name==='AbortError')return;}selected.forEach(card=>downloadBlob(card.blob,cardFileName(card.fullName)));window.location.href=`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;showNotice('Sharing attachments is unavailable in this browser. The JPG cards were downloaded and a draft was opened; attach them manually before sending.','warning');}
+    async function prepareBirthdayEmail() { const selected = cards.filter(card => selectedCardIds.has(card.id)); if (!selected.length) return; const subject = 'Birthday Cards', names = selected.map((card, index) => `${index + 1}. ${card.fullName}`).join('\n'), body = `Subject: Birthday Cards\n\nDear Team,\n\nPlease find the generated birthday cards for the following employees:\n\n${names}\n\nKindly review and share the attached cards.\n\nRegards,\nHR Team`, files = selected.map(card => new File([card.blob], cardFileName(card.fullName), { type: 'image/jpeg' })); try { if (navigator.share && navigator.canShare?.({ files })) { await navigator.share({ title: subject, text: body, files }); showNotice('The selected birthday cards were attached. Enter the recipient in Outlook, copy Birthday Cards into Subject, review the message, and click Send.', 'success'); return; } } catch (error) { if (error.name === 'AbortError') return; } selected.forEach(card => downloadBlob(card.blob, cardFileName(card.fullName))); window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`; showNotice('Sharing attachments is unavailable in this browser. The JPG cards were downloaded and a draft was opened; attach them manually before sending.', 'warning'); }
 
     async function regenerateCard(employeeId) {
         const employee = employees.find(item => item.id === employeeId); const photo = await get('photos', employeeId);
@@ -203,7 +203,7 @@
 
     async function exportBackup() {
         const payload = { version: 1, exportedAt: new Date().toISOString(), employees: employees.map(({ photo, birthdayCard, ...rest }) => ({ ...rest, photo, birthdayCard })), cards: cards.map(({ blob, ...card }) => card) };
-        downloadBlob(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }), `BirthdayStudio_Backup_${timestamp()}.json`);
+        downloadBlob(new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }), `HRCanvas_Backup_${timestamp()}.json`);
     }
 
     async function importBackup(file) {
@@ -217,10 +217,10 @@
     }
 
     async function refreshData() {
-        const previousCardIds=new Set(cards.map(card=>card.id));
+        const previousCardIds = new Set(cards.map(card => card.id));
         employees = (await getAll('employees')).sort((a, b) => a.fullName.localeCompare(b.fullName));
         cards = (await getAll('cards')).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
-        const currentCardIds=new Set(cards.map(card=>card.id));for(const id of selectedCardIds){if(!currentCardIds.has(id))selectedCardIds.delete(id);}cards.forEach(card=>{if(!previousCardIds.has(card.id))selectedCardIds.add(card.id);});
+        const currentCardIds = new Set(cards.map(card => card.id)); for (const id of selectedCardIds) { if (!currentCardIds.has(id)) selectedCardIds.delete(id); } cards.forEach(card => { if (!previousCardIds.has(card.id)) selectedCardIds.add(card.id); });
         renderCards();
     }
 
@@ -257,7 +257,7 @@
     function appendStatusCell(row, value) { const cell = document.createElement('td'); const status = document.createElement('span'); status.className = `status${value ? ' yes' : ''}`; status.textContent = value ? 'Yes' : 'No'; cell.appendChild(status); row.appendChild(cell); }
     function byId(id) { return document.getElementById(id); }
     function normalize(value) { return String(value ?? '').trim().toLowerCase().replace(/\s+/g, ' '); }
-    function cardFileName(fullName) { const readable=String(fullName||'Employee').replace(/[&_]+/g,' ').replace(/[<>:"/\\|?*\x00-\x1F]+/g,'').trim().replace(/\s+/g,' ')||'Employee';return `${readable}.jpg`; }
+    function cardFileName(fullName) { const readable = String(fullName || 'Employee').replace(/[&_]+/g, ' ').replace(/[<>:"/\\|?*\x00-\x1F]+/g, '').trim().replace(/\s+/g, ' ') || 'Employee'; return `${readable}.jpg`; }
     function timestamp() { const date = new Date(); const pad = value => String(value).padStart(2, '0'); return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}_${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`; }
     function loadImage(source) { return new Promise((resolve, reject) => { const image = new Image(); let url = source; if (source instanceof Blob) url = URL.createObjectURL(source); image.onload = () => { if (source instanceof Blob) URL.revokeObjectURL(url); resolve(image); }; image.onerror = () => { if (source instanceof Blob) URL.revokeObjectURL(url); reject(new Error('The image could not be loaded.')); }; image.src = url; }); }
     function roundedRect(context, x, y, width, height, radius) { context.beginPath(); context.roundRect(x, y, width, height, radius); }
