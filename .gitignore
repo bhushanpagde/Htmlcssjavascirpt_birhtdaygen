@@ -1,0 +1,11 @@
+/config/database.local.php
+/storage/backups/*
+/storage/birthday-cards/*
+/storage/certificates/*
+/storage/logs/*
+/storage/photos/*
+/storage/workbooks/*
+!/storage/**/.gitkeep
+!/storage/**/.htaccess
+*.log
+

@@ -14,29 +14,29 @@ Use this checklist to migrate HR Canvas from browser-only IndexedDB storage to s
 
 - [ ] Install and start Apache and MySQL/MariaDB in XAMPP.
 - [ ] Deploy the application under `C:\xampp\htdocs\hrcanvas`.
-- [ ] Create a PHP API directory such as `api/`.
-- [ ] Create writable storage directories for photos, cards, certificates, workbooks, and backups.
+- [x] Create a PHP API directory such as `api/`.
+- [x] Create storage directories for photos, cards, certificates, workbooks, and backups (server write access still needs verification).
 - [ ] Keep configuration and credentials outside publicly downloadable folders where possible.
-- [ ] Add `.gitignore` rules for credentials, uploaded files, generated files, logs, and local backups.
+- [x] Add `.gitignore` rules for credentials, uploaded files, generated files, logs, and local backups.
 - [ ] Confirm `http://localhost/hrcanvas/` loads without console or missing-file errors.
 
 ## 3. Database design
 
-- [ ] Create an `hrcanvas` database.
-- [ ] Create an `employees` table with ID, name, location, email, DOB, DOJ, photo state, card state, and timestamps.
-- [ ] Create a `photos` table containing employee ID, safe file name, relative path, MIME type, size, and timestamp.
-- [ ] Create a `birthday_cards` table containing employee ID, template number, file name, relative path, and timestamp.
-- [ ] Create a `certificates` table containing employee ID, certificate text, unit-head name, PDF/thumbnail paths, and timestamp.
-- [ ] Create a `files` table for uploaded workbook metadata and paths.
-- [ ] Create a `settings` table.
-- [ ] Add primary keys, foreign keys, unique constraints, and indexes.
-- [ ] Store dates in consistent database formats and return them consistently through the API.
+- [ ] Apply the version-controlled schema to create the `hrcanvas` database.
+- [x] Define an `employees` table with ID, name, location, email, DOB, DOJ, and timestamps.
+- [x] Define a `photos` table containing employee ID, safe file name, relative path, MIME type, size, and timestamp.
+- [x] Define a `birthday_cards` table containing employee ID, template number, file name, relative path, and timestamp.
+- [x] Define a `certificates` table containing employee ID, certificate text, unit-head name, PDF/thumbnail paths, and timestamp.
+- [x] Define a `files` table for uploaded workbook metadata and paths.
+- [x] Define a `settings` table.
+- [x] Define primary keys, foreign keys, unique constraints, and indexes.
+- [x] Define consistent database date fields and API aliases.
 
 ## 4. PHP API
 
-- [ ] Add one shared database connection/configuration module.
-- [ ] Return JSON with consistent HTTP status codes and error objects.
-- [ ] Implement list, create, update, and delete employee endpoints.
+- [x] Add one shared database connection/configuration module.
+- [x] Return JSON with consistent HTTP status codes and error objects.
+- [ ] Test the implemented list, create, update, and delete employee endpoints on XAMPP.
 - [ ] Implement photo upload, retrieval, replacement, and deletion endpoints.
 - [ ] Implement workbook upload and import endpoints.
 - [ ] Implement birthday-card save, list, download, regenerate, and delete endpoints.
