@@ -5,10 +5,10 @@ Use this checklist to migrate HR Canvas from browser-only IndexedDB storage to s
 ## 1. Baseline and recovery
 
 - [ ] Export the current browser data before migration.
-- [ ] Confirm the latest standalone version is committed and pushed to GitHub.
-- [ ] Create a migration branch from `main`.
-- [ ] Record the current IndexedDB database name (`birthday-studio`, version 2).
-- [ ] Keep the standalone version usable until server migration is accepted.
+- [x] Confirm the latest standalone version is committed and pushed to GitHub.
+- [x] Create a migration branch (`xampp-migration`) from `main`.
+- [x] Record the current IndexedDB database name (`birthday-studio`, version 2).
+- [x] Keep the standalone version usable on `main` until server migration is accepted.
 
 ## 2. XAMPP application structure
 
