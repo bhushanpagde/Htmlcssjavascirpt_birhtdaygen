@@ -22,7 +22,7 @@ Use this checklist to migrate HR Canvas from browser-only IndexedDB storage to s
 
 ## 3. Database design
 
-- [ ] Apply the version-controlled schema to create the `hrcanvas` database.
+- [x] Apply the version-controlled schema to create the `hrcanvas` database.
 - [x] Define an `employees` table with ID, name, location, email, DOB, DOJ, and timestamps.
 - [x] Define a `photos` table containing employee ID, safe file name, relative path, MIME type, size, and timestamp.
 - [x] Define a `birthday_cards` table containing employee ID, template number, file name, relative path, and timestamp.
@@ -36,7 +36,7 @@ Use this checklist to migrate HR Canvas from browser-only IndexedDB storage to s
 
 - [x] Add one shared database connection/configuration module.
 - [x] Return JSON with consistent HTTP status codes and error objects.
-- [ ] Test the implemented list, create, update, and delete employee endpoints on XAMPP.
+- [x] Test the implemented list, create, update, and delete employee endpoints on XAMPP/LAN.
 - [ ] Implement photo upload, retrieval, replacement, and deletion endpoints.
 - [ ] Implement workbook upload and import endpoints.
 - [ ] Implement birthday-card save, list, download, regenerate, and delete endpoints.
