@@ -40,13 +40,15 @@ if ($method === 'POST') {
         fail('templateNumber must be a positive integer.', 422);
     }
     $upload = uploadedFile('card', ['image/jpeg' => 'jpg'], 15 * 1024 * 1024);
-    $storedName = sprintf(
-        '%s_%s_%s.jpg',
-        safeFilePart($employeeId, 'employee'),
-        safeFilePart($employee['fullName'], 'birthday-card'),
-        bin2hex(random_bytes(6))
-    );
+    $namePart = readableFilePart($employee['fullName'], 'Birthday Card');
+    $storedName = $namePart . '.jpg';
     $relativePath = 'storage/birthday-cards/' . $storedName;
+    $collision = $connection->prepare('SELECT 1 FROM birthday_cards WHERE relative_path = ? AND employee_id <> ? LIMIT 1');
+    $collision->execute([$relativePath, $employeeId]);
+    if ($collision->fetchColumn()) {
+        $storedName = sprintf('%s (%s).jpg', $namePart, safeFilePart($employeeId, 'employee'));
+        $relativePath = 'storage/birthday-cards/' . $storedName;
+    }
     $destination = storageDirectory('birthday-cards') . '/' . $storedName;
     if (!move_uploaded_file($upload['file']['tmp_name'], $destination)) {
         throw new RuntimeException('The server could not save the birthday card.');
@@ -102,4 +104,3 @@ if ($method === 'DELETE') {
 
 header('Allow: GET, POST, DELETE');
 fail('Method not allowed.', 405);
-

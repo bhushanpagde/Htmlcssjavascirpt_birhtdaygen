@@ -98,6 +98,14 @@ function safeFilePart(string $value, string $fallback = 'file'): string
     return $value !== '' ? substr($value, 0, 100) : $fallback;
 }
 
+function readableFilePart(string $value, string $fallback = 'file'): string
+{
+    $value = preg_replace('/[<>:"\/\\\\|?*\x00-\x1F]+/u', '', trim($value)) ?? '';
+    $value = preg_replace('/\s+/u', ' ', $value) ?? '';
+    $value = trim($value, " .\t\n\r\0\x0B");
+    return $value !== '' ? mb_substr($value, 0, 150) : $fallback;
+}
+
 function storageDirectory(string $name): string
 {
     if (!preg_match('/^[a-z0-9-]+$/', $name)) {

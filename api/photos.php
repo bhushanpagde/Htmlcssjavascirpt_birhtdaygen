@@ -41,14 +41,15 @@ if ($method === 'POST') {
         'image/png' => 'png',
         'image/webp' => 'webp',
     ], 10 * 1024 * 1024);
-    $storedName = sprintf(
-        '%s_%s_%s.%s',
-        safeFilePart($employeeId, 'employee'),
-        safeFilePart($employee['fullName'], 'photo'),
-        bin2hex(random_bytes(6)),
-        $upload['extension']
-    );
+    $namePart = readableFilePart($employee['fullName'], 'Photo');
+    $storedName = sprintf('%s.%s', $namePart, $upload['extension']);
     $relativePath = 'storage/photos/' . $storedName;
+    $collision = $connection->prepare('SELECT 1 FROM photos WHERE relative_path = ? AND employee_id <> ? LIMIT 1');
+    $collision->execute([$relativePath, $employeeId]);
+    if ($collision->fetchColumn()) {
+        $storedName = sprintf('%s (%s).%s', $namePart, safeFilePart($employeeId, 'employee'), $upload['extension']);
+        $relativePath = 'storage/photos/' . $storedName;
+    }
     $destination = storageDirectory('photos') . '/' . $storedName;
     if (!move_uploaded_file($upload['file']['tmp_name'], $destination)) {
         throw new RuntimeException('The server could not save the uploaded photo.');
@@ -105,4 +106,3 @@ if ($method === 'DELETE') {
 
 header('Allow: GET, POST, DELETE');
 fail('Method not allowed.', 405);
-
