@@ -120,6 +120,8 @@ try {
     throw $error;
 }
 
+exportEmployeesJson($connection);
+
 respond([
     'ok' => true,
     'id' => $fileId,

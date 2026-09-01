@@ -70,6 +70,7 @@ if ($method === 'POST') {
         }
         throw $error;
     }
+    exportEmployeesJson(database());
     respond(['ok' => true, 'id' => $employeeId], 201);
 }
 
@@ -98,6 +99,7 @@ if ($method === 'PUT') {
             fail('Employee not found.', 404);
         }
     }
+    exportEmployeesJson(database());
     respond(['ok' => true, 'id' => $id]);
 }
 
@@ -121,6 +123,7 @@ if ($method === 'DELETE') {
     foreach ($storedPaths as $storedPath) {
         deleteStoredFile($storedPath);
     }
+    exportEmployeesJson(database());
     respond(['ok' => true, 'id' => $id]);
 }
 

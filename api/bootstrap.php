@@ -161,6 +161,39 @@ function deleteStoredFile(?string $relativePath): void
     }
 }
 
+function exportEmployeesJson(PDO $connection): void
+{
+    $statement = $connection->query(
+        'SELECT id, full_name AS fullName, location, email, dob, doj
+         FROM employees
+         ORDER BY full_name, id'
+    );
+    $employees = $statement->fetchAll();
+    $json = json_encode(
+        $employees,
+        JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR
+    ) . PHP_EOL;
+
+    $directory = HRCANVAS_ROOT . '/data';
+    if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) {
+        throw new RuntimeException('Could not create the data directory.');
+    }
+
+    $destination = $directory . '/employees.json';
+    $temporary = $directory . '/employees.json.tmp';
+    if (file_put_contents($temporary, $json, LOCK_EX) === false) {
+        throw new RuntimeException('Could not write data/employees.json.');
+    }
+    if (is_file($destination) && !unlink($destination)) {
+        @unlink($temporary);
+        throw new RuntimeException('Could not replace data/employees.json.');
+    }
+    if (!rename($temporary, $destination)) {
+        @unlink($temporary);
+        throw new RuntimeException('Could not publish data/employees.json.');
+    }
+}
+
 set_exception_handler(static function (Throwable $error): never {
     error_log($error->__toString());
     fail('The server could not complete the request.', 500);
