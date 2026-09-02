@@ -164,7 +164,7 @@ function deleteStoredFile(?string $relativePath): void
 function exportEmployeesJson(PDO $connection): void
 {
     $statement = $connection->query(
-        'SELECT id, full_name AS fullName, location, email, dob, doj
+        'SELECT id, full_name AS fullName, location, designation, email, dob, doj
          FROM employees
          ORDER BY full_name, id'
     );

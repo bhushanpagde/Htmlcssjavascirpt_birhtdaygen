@@ -59,6 +59,7 @@ $body = @{
     id = 'TEST001'
     fullName = 'API Test Employee'
     location = 'Test'
+    designation = 'Tester'
     email = 'test@example.invalid'
     dob = '2000-01-01'
     doj = '2026-01-01'
@@ -86,4 +87,3 @@ Invoke-RestMethod `
 ```
 
 The frontend still uses IndexedDB during this foundation phase. It will be switched to these APIs only after the server endpoints pass their tests.
-

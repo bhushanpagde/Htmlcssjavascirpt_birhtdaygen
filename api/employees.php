@@ -9,7 +9,7 @@ $id = trim((string) ($_GET['id'] ?? ''));
 if ($method === 'GET') {
     if ($id !== '') {
         $statement = database()->prepare(
-            'SELECT e.id, e.full_name AS fullName, e.location, e.email, e.dob, e.doj,
+            'SELECT e.id, e.full_name AS fullName, e.location, e.designation, e.email, e.dob, e.doj,
                     (p.employee_id IS NOT NULL) AS photo,
                     (c.employee_id IS NOT NULL) AS birthdayCard,
                     p.relative_path AS photoPath, c.relative_path AS birthdayCardPath,
@@ -30,7 +30,7 @@ if ($method === 'GET') {
     }
 
     $statement = database()->query(
-        'SELECT e.id, e.full_name AS fullName, e.location, e.email, e.dob, e.doj,
+        'SELECT e.id, e.full_name AS fullName, e.location, e.designation, e.email, e.dob, e.doj,
                 (p.employee_id IS NOT NULL) AS photo,
                 (c.employee_id IS NOT NULL) AS birthdayCard,
                 p.relative_path AS photoPath, c.relative_path AS birthdayCardPath,
@@ -52,14 +52,15 @@ if ($method === 'POST') {
     $input = requestBody();
     $employeeId = requireText($input, 'id', 100);
     $statement = database()->prepare(
-        'INSERT INTO employees (id, full_name, location, email, dob, doj)
-         VALUES (:id, :full_name, :location, :email, :dob, :doj)'
+        'INSERT INTO employees (id, full_name, location, designation, email, dob, doj)
+         VALUES (:id, :full_name, :location, :designation, :email, :dob, :doj)'
     );
     try {
         $statement->execute([
             'id' => $employeeId,
             'full_name' => requireText($input, 'fullName'),
             'location' => optionalText($input, 'location'),
+            'designation' => optionalText($input, 'designation'),
             'email' => optionalText($input, 'email', 320),
             'dob' => optionalText($input, 'dob', 32),
             'doj' => optionalText($input, 'doj', 32),
@@ -81,13 +82,15 @@ if ($method === 'PUT') {
     $input = requestBody();
     $statement = database()->prepare(
         'UPDATE employees
-         SET full_name = :full_name, location = :location, email = :email, dob = :dob, doj = :doj
+         SET full_name = :full_name, location = :location, designation = :designation,
+             email = :email, dob = :dob, doj = :doj
          WHERE id = :id'
     );
     $statement->execute([
         'id' => $id,
         'full_name' => requireText($input, 'fullName'),
         'location' => optionalText($input, 'location'),
+        'designation' => optionalText($input, 'designation'),
         'email' => optionalText($input, 'email', 320),
         'dob' => optionalText($input, 'dob', 32),
         'doj' => optionalText($input, 'doj', 32),

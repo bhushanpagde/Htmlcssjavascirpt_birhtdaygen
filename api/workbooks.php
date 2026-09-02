@@ -84,7 +84,7 @@ try {
     $fileStatement->execute([$originalName, $storedName, 'workbook', $relativePath, $upload['mimeType'], $upload['size']]);
     $fileId = (int) $connection->lastInsertId();
     $employeeStatement = $connection->prepare(
-        'INSERT IGNORE INTO employees (id, full_name, location, email, dob, doj) VALUES (?, ?, ?, ?, ?, ?)'
+        'INSERT IGNORE INTO employees (id, full_name, location, designation, email, dob, doj) VALUES (?, ?, ?, ?, ?, ?, ?)'
     );
     foreach ($employees as $employee) {
         if (!is_array($employee)) {
@@ -101,6 +101,7 @@ try {
             $id,
             $fullName,
             substr(trim((string) ($employee['location'] ?? '')), 0, 255),
+            substr(trim((string) ($employee['designation'] ?? '')), 0, 255),
             substr(trim((string) ($employee['email'] ?? '')), 0, 320),
             substr(trim((string) ($employee['dob'] ?? '')), 0, 32),
             substr(trim((string) ($employee['doj'] ?? '')), 0, 32),

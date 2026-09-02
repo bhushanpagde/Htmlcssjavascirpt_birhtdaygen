@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS employees (
     id VARCHAR(100) NOT NULL,
     full_name VARCHAR(255) NOT NULL,
     location VARCHAR(255) NOT NULL DEFAULT '',
+    designation VARCHAR(255) NOT NULL DEFAULT '',
     email VARCHAR(320) NOT NULL DEFAULT '',
     dob VARCHAR(32) NOT NULL DEFAULT '',
     doj VARCHAR(32) NOT NULL DEFAULT '',
@@ -17,6 +18,9 @@ CREATE TABLE IF NOT EXISTS employees (
     INDEX idx_employees_name (full_name),
     INDEX idx_employees_location (location)
 ) ENGINE=InnoDB;
+
+ALTER TABLE employees
+    ADD COLUMN IF NOT EXISTS designation VARCHAR(255) NOT NULL DEFAULT '' AFTER location;
 
 CREATE TABLE IF NOT EXISTS photos (
     employee_id VARCHAR(100) NOT NULL,
@@ -75,4 +79,3 @@ CREATE TABLE IF NOT EXISTS settings (
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (setting_key)
 ) ENGINE=InnoDB;
-
